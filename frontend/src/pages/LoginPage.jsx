@@ -1,41 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiFeather, FiMail, FiLock, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
+import { supabase } from '../utils/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true });
+  }, [user, navigate]);
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setError('');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) {
+      setError(error.message);
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      // Store the session token (you might want to use a state management solution later)
-      localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
-      
-      alert(`Logged in successfully as ${email}!`);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      // AuthContext will pick up the session change and dashboard route handles redirect
       navigate('/dashboard');
-    } catch (error) {
-      alert(`Error: ${error.message}`);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -205,13 +216,17 @@ export default function LoginPage() {
               </span>
             </div>
 
+            {error && (
+              <p className="text-red-400 text-xs text-center bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
+            )}
             <button
               type="button"
-              onClick={() => alert("Google Login initiated (simulated).")}
-              className="w-full bg-slate-900 hover:bg-slate-800/80 border border-slate-850 py-3 rounded-lg text-sm text-slate-200 hover:text-white transition-all font-semibold flex items-center justify-center space-x-3"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+              className="w-full bg-slate-900 hover:bg-slate-800/80 border border-slate-700 py-3 rounded-lg text-sm text-slate-200 hover:text-white transition-all font-semibold flex items-center justify-center space-x-3 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <FcGoogle className="w-5 h-5" />
-              <span>Continue with Google</span>
+              <span>{googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}</span>
             </button>
           </div>
 

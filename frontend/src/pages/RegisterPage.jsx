@@ -1,43 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiFeather, FiMail, FiLock, FiUser, FiArrowRight, FiCheck } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
+import { supabase } from '../utils/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true });
+  }, [user, navigate]);
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setError('');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) {
+      setError(error.message);
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setError('Passwords do not match!');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, fullName }),
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
       });
+      if (error) throw error;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+      // If email confirmation is disabled, user is logged in immediately
+      if (data.session) {
+        navigate('/dashboard');
+      } else {
+        setSuccess('Account created! Please check your email to confirm your account before logging in.');
       }
-
-      alert(`Account created successfully for ${fullName}! Welcome to QuillSync!`);
-      navigate('/dashboard');
-    } catch (error) {
-      alert(`Error: ${error.message}`);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -161,11 +190,12 @@ export default function RegisterPage() {
           <div className="space-y-4">
             <button
               type="button"
-              onClick={() => alert("Google Sign Up initiated (simulated).")}
-              className="w-full bg-slate-900 hover:bg-slate-800/80 border border-slate-850 py-3 rounded-lg text-sm text-slate-200 hover:text-white transition-all font-semibold flex items-center justify-center space-x-3"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+              className="w-full bg-slate-900 hover:bg-slate-800/80 border border-slate-700 py-3 rounded-lg text-sm text-slate-200 hover:text-white transition-all font-semibold flex items-center justify-center space-x-3 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <FcGoogle className="w-5 h-5" />
-              <span>Continue with Google</span>
+              <span>{googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}</span>
             </button>
 
             <div className="relative flex items-center justify-center">

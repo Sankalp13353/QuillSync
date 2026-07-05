@@ -4,11 +4,21 @@ import {
   FiFeather, FiGrid, FiLayers, FiSearch, FiBell, FiStar, 
   FiClock, FiHash, FiUser, FiSettings, FiZap, FiFileText, 
   FiUsers, FiCheckCircle, FiMessageSquare, FiMoreHorizontal, 
-  FiPlus 
+  FiPlus, FiLogOut 
 } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const displayEmail = user?.email || '';
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans">
@@ -75,6 +85,13 @@ export default function DashboardPage() {
             <FiSettings className="w-4 h-4" />
             <span>Settings</span>
           </button>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center space-x-3 px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg font-medium transition-colors"
+          >
+            <FiLogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
           
           <div className="mt-4 bg-slate-800/50 border border-slate-700/50 p-4 rounded-xl flex flex-col items-start">
             <div className="flex items-center space-x-2 text-indigo-400 mb-1">
@@ -121,11 +138,11 @@ export default function DashboardPage() {
             
             <div className="flex items-center space-x-3 cursor-pointer">
               <div className="flex flex-col items-end">
-                <span className="text-sm font-semibold text-white">Alex Rivers</span>
-                <span className="text-[10px] text-slate-400">Design Director</span>
+                <span className="text-sm font-semibold text-white">{displayName}</span>
+                <span className="text-[10px] text-slate-400">{displayEmail}</span>
               </div>
               <div className="w-9 h-9 rounded-full bg-indigo-500/20 border border-indigo-500/50 flex items-center justify-center overflow-hidden relative">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&backgroundColor=transparent" alt="Avatar" className="w-full h-full object-cover" />
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=transparent`} alt="Avatar" className="w-full h-full object-cover" />
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-950 rounded-full"></div>
               </div>
             </div>
