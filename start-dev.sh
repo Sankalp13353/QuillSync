@@ -1,80 +1,51 @@
 #!/bin/bash
 
-# QuillSync Development Server Launcher
-# This script starts both backend and frontend development servers
-
-echo "🚀 Starting QuillSync Development Servers..."
-echo ""
-
-# Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Check if we're in the right directory
-if [ ! -d "backend" ] || [ ! -d "frontend" ]; then
-    echo "❌ Error: Please run this script from the QuillSync root directory"
-    exit 1
+echo "🚀 QuillSync Dev Launcher"
+echo ""
+echo "1) Local (npm)"
+echo "2) Docker"
+read -p "Choose mode [1/2]: " MODE
+
+if [ "$MODE" = "2" ]; then
+  echo ""
+  echo -e "${BLUE}Starting with Docker Compose...${NC}"
+  docker compose up --build
+  exit 0
 fi
 
-# Function to install dependencies if needed
-check_dependencies() {
-    local dir=$1
-    if [ ! -d "$dir/node_modules" ]; then
-        echo "📦 Installing dependencies for $dir..."
-        cd "$dir"
-        npm install
-        cd ..
-    fi
-}
+# Local mode
+if [ ! -d "backend" ] || [ ! -d "frontend" ]; then
+  echo "❌ Run from the QuillSync root directory"
+  exit 1
+fi
 
-# Check and install backend dependencies
-echo "🔍 Checking backend dependencies..."
-check_dependencies "backend"
+[ ! -d "backend/node_modules" ] && echo "📦 Installing backend deps..." && cd backend && npm install && cd ..
+[ ! -d "frontend/node_modules" ] && echo "📦 Installing frontend deps..." && cd frontend && npm install && cd ..
 
-# Check and install frontend dependencies
-echo "🔍 Checking frontend dependencies..."
-check_dependencies "frontend"
-
-echo ""
 echo -e "${GREEN}✅ Dependencies ready!${NC}"
 echo ""
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}Starting Backend Server (Port 5000)...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
 
-# Start backend in background
-cd backend
-npm start &
+cd backend && npm run dev &
 BACKEND_PID=$!
 cd ..
 
 sleep 2
 
-echo ""
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}Starting Frontend Server (Port 5174)...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-
-# Start frontend
-cd frontend
-npm run dev &
+cd frontend && npm run dev &
 FRONTEND_PID=$!
 cd ..
 
-# Trap to kill both processes on exit
 trap "kill $BACKEND_PID $FRONTEND_PID" EXIT
 
 echo ""
-echo -e "${GREEN}✨ Both servers are running!${NC}"
+echo -e "${GREEN}✨ Both servers running!${NC}"
+echo "Frontend: http://localhost:5174"
+echo "Backend:  http://localhost:5000"
 echo ""
-echo "Frontend:  http://localhost:5174"
-echo "Backend:   http://localhost:5000"
-echo ""
-echo "Press Ctrl+C to stop both servers"
-echo ""
+echo "Press Ctrl+C to stop"
 
-# Wait for both processes
 wait
