@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { supabase, requireAuth } = require('../middleware/auth');
+const prisma = require('../../prisma/client');
 
 router.post('/register', async (req, res) => {
   const { email, password, fullName } = req.body;
@@ -13,6 +14,11 @@ router.post('/register', async (req, res) => {
       email, password, options: { data: { full_name: fullName } }
     });
     if (error) throw error;
+
+    await prisma.user.create({
+      data: { supabaseId: data.user.id, email: data.user.email }
+    });
+
     res.status(201).json({
       message: 'Registration successful! Please check your email to confirm your account.',
       user: { id: data.user?.id, email: data.user?.email, fullName: data.user?.user_metadata?.full_name },
