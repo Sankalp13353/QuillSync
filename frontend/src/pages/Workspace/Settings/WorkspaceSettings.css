@@ -1,0 +1,211 @@
+/* ==========================================================
+   WORKSPACE SETTINGS
+========================================================== */
+
+.settings-header{
+
+    margin-bottom:35px;
+
+}
+
+.settings-header h1{
+
+    font-size:36px;
+
+    margin-bottom:8px;
+
+}
+
+.settings-header p{
+
+    color:#94a3b8;
+
+}
+
+.settings-card{
+
+    background:#0f172a;
+
+    border:1px solid #1e293b;
+
+    border-radius:16px;
+
+    padding:30px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:24px;
+
+}
+
+.settings-card h2{
+
+    margin-bottom:10px;
+
+}
+
+.settings-group{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+}
+
+.settings-group label{
+
+    font-weight:600;
+
+    color:#cbd5e1;
+
+}
+
+.settings-group input,
+
+.settings-group textarea,
+
+.settings-group select{
+
+    padding:14px;
+
+    border-radius:10px;
+
+    border:1px solid #1e293b;
+
+    background:#111827;
+
+    color:white;
+
+    outline:none;
+
+    font-size:15px;
+
+}
+
+.settings-group input:focus,
+
+.settings-group textarea:focus,
+
+.settings-group select:focus{
+
+    border-color:#2563eb;
+
+}
+
+.settings-group textarea{
+
+    resize:vertical;
+
+}
+
+.save-btn{
+
+    margin-top:10px;
+
+    padding:14px;
+
+    background:#2563eb;
+
+    border:none;
+
+    color:white;
+
+    font-weight:600;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.save-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+.danger-zone{
+
+    margin-top:35px;
+
+    background:#0f172a;
+
+    border:1px solid rgba(239,68,68,.25);
+
+    border-radius:16px;
+
+    padding:30px;
+
+}
+
+.danger-zone h2{
+
+    color:#ef4444;
+
+    margin-bottom:12px;
+
+}
+
+.danger-zone p{
+
+    color:#94a3b8;
+
+    margin-bottom:20px;
+
+    line-height:1.6;
+
+}
+
+.delete-btn{
+
+    padding:14px 24px;
+
+    background:#ef4444;
+
+    border:none;
+
+    border-radius:10px;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.delete-btn:hover{
+
+    background:#dc2626;
+
+}
+
+@media(max-width:768px){
+
+.settings-card{
+
+padding:20px;
+
+}
+
+.danger-zone{
+
+padding:20px;
+
+}
+
+.settings-header h1{
+
+font-size:30px;
+
+}
+
+}

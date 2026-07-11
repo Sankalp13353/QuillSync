@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: quillsync
+      POSTGRES_PASSWORD: quillsync
+      POSTGRES_DB: quillsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://quillsync:quillsync@db:5432/quillsync
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

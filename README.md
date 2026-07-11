@@ -1,43 +1,71 @@
-# QuillSync - Collaborative Knowledge & Documentation Platform
+# QuillSync
 
-Welcome to QuillSync, a collaborative knowledge and documentation platform. This repository is organized as a full-stack project with separate modules for frontend and backend development.
+Collaborative knowledge & documentation platform.
 
 ---
 
-## 📁 Project Structure
+## Stack
+
+- **Frontend** — React 19, Vite, Tailwind CSS v4, React Router v7, Supabase
+- **Backend** — Node.js, Express 5, Supabase
+
+---
+
+## Project Structure
 
 ```
 QuillSync/
-├── frontend/          # React.js SPA (Vite + Tailwind CSS v4 + React Router)
-│   ├── public/        # Static assets
-│   ├── src/           # React components, pages, hooks, and logic
-│   ├── package.json   # Frontend dependency declarations & scripts
-│   └── vite.config.js # Vite bundler and plugin configurations
-└── backend/           # Node.js / Express API Service (or your backend framework of choice)
-    └── .gitkeep       # Placeholder to track the folder
+├── frontend/
+│   └── src/
+│       ├── components/     # Shared components (ProtectedRoute)
+│       ├── context/        # AuthContext
+│       ├── pages/          # Dashboard, Landing, Login, Register, ForgotPassword, ResetPassword
+│       └── utils/          # supabase.js
+└── backend/
+    ├── app/
+    └── server.js
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Frontend
-
-To run the React frontend application locally:
-
-1. **Navigate to the frontend folder**:
-   ```bash
-   cd frontend
-   ```
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-3. **Start the development server**:
-   ```bash
-   npm run dev
-   ```
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ### Backend
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-*(Backend installation and startup instructions will be documented here as backend code is added.)*
+### Both (from root)
+```bash
+# macOS/Linux
+./start-dev.sh
+
+# Windows
+start-dev.bat
+```
+
+---
+
+## Environment Variables
+
+**frontend/.env**
+```
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+```
+
+**backend/.env**
+```
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+PORT=
+```

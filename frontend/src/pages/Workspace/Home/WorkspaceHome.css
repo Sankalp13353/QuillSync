@@ -1,0 +1,611 @@
+/* =====================================================
+   Workspace Home
+   PART 1
+===================================================== */
+
+/* ---------- Layout ---------- */
+
+.workspace-page{
+    display:flex;
+    min-height:100vh;
+    background:#020617;
+    color:#fff;
+}
+
+.workspace-main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+}
+
+.workspace-content{
+    padding:35px;
+}
+
+.workspace-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:30px;
+    margin-top:35px;
+}
+
+.workspace-left,
+.workspace-right{
+    display:flex;
+    flex-direction:column;
+    gap:30px;
+}
+
+/* ---------- Workspace Header ---------- */
+
+.workspace-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.workspace-header-left h1{
+    font-size:36px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.workspace-header-left p{
+    color:#94a3b8;
+    max-width:600px;
+    line-height:1.6;
+}
+
+.workspace-header-right{
+    display:flex;
+    gap:15px;
+}
+
+.primary-btn,
+.secondary-btn{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:13px 22px;
+
+    border-radius:10px;
+
+    border:none;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
+}
+
+.primary-btn{
+
+    background:#2563eb;
+
+    color:white;
+
+}
+
+.primary-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+.secondary-btn{
+
+    background:#1e293b;
+
+    color:white;
+
+}
+
+.secondary-btn:hover{
+
+    background:#334155;
+
+}
+
+/* ---------- Shared Card ---------- */
+
+.documents-preview,
+.members-preview,
+.activity-feed,
+.quick-actions{
+
+    background:#0f172a;
+
+    border:1px solid #1e293b;
+
+    border-radius:16px;
+
+    padding:24px;
+
+}
+
+/* ---------- Section Header ---------- */
+
+.section-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:24px;
+
+}
+
+.section-title h2{
+
+    font-size:22px;
+
+    margin-bottom:5px;
+
+}
+
+.section-title p{
+
+    color:#94a3b8;
+
+    font-size:14px;
+
+}
+
+.view-all-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    background:none;
+
+    border:none;
+
+    color:#3b82f6;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+}
+
+.view-all-btn:hover{
+
+    color:#60a5fa;
+
+}
+
+/* ---------- Documents ---------- */
+
+.documents-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:16px;
+
+}
+
+.document-card{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:16px;
+
+    border-radius:12px;
+
+    border:1px solid #1e293b;
+
+    transition:.25s;
+
+}
+
+.document-card:hover{
+
+    border-color:#2563eb;
+
+}
+
+.document-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+}
+
+.document-icon{
+
+    width:48px;
+
+    height:48px;
+
+    border-radius:12px;
+
+    background:#1e293b;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:22px;
+
+    color:#60a5fa;
+
+}
+
+.document-info h3{
+
+    margin-bottom:6px;
+
+}
+
+.document-info p{
+
+    color:#94a3b8;
+
+    font-size:14px;
+
+}
+
+.open-document-btn{
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#2563eb;
+
+    color:white;
+
+    cursor:pointer;
+
+}
+
+.open-document-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+
+/* =====================================================
+   PART 2
+   Members • Activity • Quick Actions • Responsive
+===================================================== */
+
+/* ---------- Members ---------- */
+
+.members-list{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.member-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px;
+    border:1px solid #1e293b;
+    border-radius:12px;
+    transition:.25s;
+}
+
+.member-card:hover{
+    border-color:#2563eb;
+}
+
+.member-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.member-avatar{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:#2563eb;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:18px;
+    font-weight:700;
+    color:#fff;
+}
+
+.member-info h3{
+    margin-bottom:4px;
+    font-size:16px;
+}
+
+.member-info p{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+.member-role{
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.member-role.owner{
+    background:#1d4ed8;
+    color:#fff;
+}
+
+.member-role.editor{
+    background:#047857;
+    color:#fff;
+}
+
+.member-role.viewer{
+    background:#6d28d9;
+    color:#fff;
+}
+
+.invite-member-btn{
+    margin-top:20px;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+    font-weight:600;
+    transition:.25s;
+}
+
+.invite-member-btn:hover{
+    background:#1d4ed8;
+}
+
+/* ---------- Activity Feed ---------- */
+
+.activity-list{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.activity-card{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    padding:16px;
+    border:1px solid #1e293b;
+    border-radius:12px;
+    transition:.25s;
+}
+
+.activity-card:hover{
+    border-color:#2563eb;
+}
+
+.activity-icon{
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    background:#1e293b;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:#3b82f6;
+    flex-shrink:0;
+}
+
+.activity-content{
+    flex:1;
+}
+
+.activity-content h3{
+    font-size:15px;
+    margin-bottom:8px;
+}
+
+.activity-content p{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:#94a3b8;
+    font-size:13px;
+}
+
+/* ---------- Quick Actions ---------- */
+
+.quick-actions-grid{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.quick-action-card{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:16px;
+    border:none;
+    border-radius:12px;
+    background:#111827;
+    cursor:pointer;
+    transition:.25s;
+    color:white;
+    text-align:left;
+}
+
+.quick-action-card:hover{
+    background:#1e293b;
+    transform:translateY(-2px);
+}
+
+.quick-action-icon{
+    width:50px;
+    height:50px;
+    border-radius:12px;
+    background:#2563eb;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:22px;
+}
+
+.quick-action-info{
+    flex:1;
+}
+
+.quick-action-info h3{
+    margin-bottom:5px;
+    font-size:16px;
+}
+
+.quick-action-info p{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+.quick-action-arrow{
+    font-size:20px;
+    color:#94a3b8;
+}
+
+/* ---------- Scrollbar ---------- */
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#334155;
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#475569;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width:1200px){
+
+.workspace-grid{
+    grid-template-columns:1fr;
+}
+
+.workspace-right{
+    order:-1;
+}
+
+}
+
+@media (max-width:768px){
+
+.workspace-content{
+    padding:20px;
+}
+
+.workspace-header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:20px;
+}
+
+.workspace-header-right{
+    width:100%;
+    flex-wrap:wrap;
+}
+
+.primary-btn,
+.secondary-btn{
+    flex:1;
+    justify-content:center;
+}
+
+.member-card,
+.document-card{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:15px;
+}
+
+}
+
+@media (max-width:600px){
+
+.workspace-header-left h1{
+    font-size:28px;
+}
+
+.workspace-content{
+    padding:16px;
+}
+
+.primary-btn,
+.secondary-btn{
+    width:100%;
+}
+
+}
+.document-card {
+  cursor: pointer;
+}
+
+.document-collaborators {
+  display: flex;
+  margin: 12px 0;
+}
+
+.collaborator-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin-right: -8px;
+
+  border: 2px solid #0f172a;
+
+  transition: 0.25s;
+}
+
+.collaborator-avatar:hover {
+  transform: translateY(-3px);
+  z-index: 2;
+}

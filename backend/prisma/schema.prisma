@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model User {
+  id          String   @id @default(uuid())
+  supabaseId  String   @unique
+  email       String   @unique
+  createdAt   DateTime @default(now())
+
+  ownedWorkspaces   Workspace[]
+  memberships       WorkspaceMember[]
+  documents         Document[]
+}
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  owner     User              @relation(fields: [ownerId], references: [id])
+  members   WorkspaceMember[]
+  documents Document[]
+  tags      Tag[]
+}
+
+model WorkspaceMember {
+  userId      String
+  workspaceId String
+  role        Role     @default(VIEWER)
+
+  user        User      @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@id([userId, workspaceId])
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  title       String
+  content     Json     @default("{}")
+  workspaceId String
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  author      User          @relation(fields: [authorId], references: [id])
+  tags        DocumentTag[]
+}
+
+model Tag {
+  id          String   @id @default(uuid())
+  name        String
+  workspaceId String
+
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  documents   DocumentTag[]
+
+  @@unique([name, workspaceId])
+}
+
+model DocumentTag {
+  documentId String
+  tagId      String
+
+  document   Document @relation(fields: [documentId], references: [id])
+  tag        Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([documentId, tagId])
+}
