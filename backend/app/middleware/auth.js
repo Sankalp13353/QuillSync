@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const prisma = require('../../prisma/client');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
@@ -15,8 +16,28 @@ const requireAuth = async (req, res, next) => {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 
-  req.user = user;
-  next();
+  try {
+    let dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id }
+    });
+
+    if (!dbUser) {
+      dbUser = await prisma.user.create({
+        data: {
+          supabaseId: user.id,
+          email: user.email
+        }
+      });
+    }
+
+    req.user = user;
+    req.dbUser = dbUser;
+    next();
+  } catch (dbError) {
+    console.error('Error resolving Prisma user:', dbError);
+    return res.status(500).json({ error: 'Database error resolving user session' });
+  }
 };
 
 module.exports = { supabase, requireAuth };
+
