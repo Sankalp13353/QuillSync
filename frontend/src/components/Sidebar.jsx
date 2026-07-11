@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   FiFeather,
   FiGrid,
@@ -14,14 +14,13 @@ import { useAuth } from "../context/AuthContext";
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id: workspaceId } = useParams();
   const { signOut } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
     navigate("/login", { replace: true });
   };
-
-  const workspaceId = 1; // Replace with dynamic id later
 
   return (
     <aside className="sidebar">
@@ -63,50 +62,55 @@ const Sidebar = () => {
               <span>Dashboard</span>
             </button>
 
-            <button
-              className={`sidebar-item ${
-                location.pathname === `/workspace/${workspaceId}`
-                  ? "sidebar-item--active"
-                  : ""
-              }`}
-              onClick={() => navigate(`/workspace/${workspaceId}`)}
-            >
-              <FiLayers />
-              <span>Workspace Home</span>
-            </button>
+            {workspaceId && (
+              <>
+                <button
+                  className={`sidebar-item ${
+                    location.pathname === `/workspace/${workspaceId}`
+                      ? "sidebar-item--active"
+                      : ""
+                  }`}
+                  onClick={() => navigate(`/workspace/${workspaceId}`)}
+                >
+                  <FiLayers />
+                  <span>Workspace Home</span>
+                </button>
 
-            <button
-              className={`sidebar-item ${
-                location.pathname.includes("/members")
-                  ? "sidebar-item--active"
-                  : ""
-              }`}
-              onClick={() =>
-                navigate(`/workspace/${workspaceId}/members`)
-              }
-            >
-              <FiUsers />
-              <span>Members</span>
-            </button>
+                <button
+                  className={`sidebar-item ${
+                    location.pathname.includes("/members")
+                      ? "sidebar-item--active"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    navigate(`/workspace/${workspaceId}/members`)
+                  }
+                >
+                  <FiUsers />
+                  <span>Members</span>
+                </button>
 
-            <button
-              className={`sidebar-item ${
-                location.pathname.includes("/settings")
-                  ? "sidebar-item--active"
-                  : ""
-              }`}
-              onClick={() =>
-                navigate(`/workspace/${workspaceId}/settings`)
-              }
-            >
-              <FiSettings />
-              <span>Settings</span>
-            </button>
+                <button
+                  className={`sidebar-item ${
+                    location.pathname.includes("/settings")
+                      ? "sidebar-item--active"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    navigate(`/workspace/${workspaceId}/settings`)
+                  }
+                >
+                  <FiSettings />
+                  <span>Settings</span>
+                </button>
+              </>
+            )}
 
           </div>
 
         </div>
       </div>
+
 
       <div className="sidebar-footer">
 
