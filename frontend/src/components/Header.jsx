@@ -3,7 +3,7 @@ import { FiBell, FiSearch, FiCheck } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 
-const Header = () => {
+const Header = ({ search, onSearch }) => {
   const { user } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -74,7 +74,10 @@ const Header = () => {
       <div className="header-search">
         <div className="header-search-wrap">
           <div className="header-search-icon"><FiSearch /></div>
-          <input type="text" placeholder="Search Workspace..." className="header-search-input" />
+          <input type="text" placeholder="Search Workspace..." className="header-search-input"
+            value={search || ""}
+            onChange={(e) => onSearch && onSearch(e.target.value)}
+          />
         </div>
       </div>
 

@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 
 // Workspace
+import WorkspacesPage from "./pages/Workspaces/WorkspacesPage";
 import WorkspaceHome from "./pages/Workspace/Home/WorkspaceHome";
 import MembersPage from "./pages/Workspace/Members/MembersPage";
 import WorkspaceSettings from "./pages/Workspace/Settings/WorkspaceSettings";
@@ -46,6 +47,11 @@ function App() {
           />
 
           {/* Protected Routes */}
+
+          <Route
+            path="/workspaces"
+            element={<ProtectedRoute><WorkspacesPage /></ProtectedRoute>}
+          />
 
           <Route
             path="/dashboard"

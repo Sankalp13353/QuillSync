@@ -73,9 +73,7 @@ const Sidebar = () => {
 
             <button
               className={`sidebar-item ${
-                location.pathname === "/dashboard"
-                  ? "sidebar-item--active"
-                  : ""
+                location.pathname === "/dashboard" ? "sidebar-item--active" : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -85,11 +83,19 @@ const Sidebar = () => {
 
             <button
               className={`sidebar-item ${
-                location.pathname === `/workspace/${workspaceId}`
-                  ? "sidebar-item--active"
-                  : ""
+                location.pathname === "/workspaces" ? "sidebar-item--active" : ""
               }`}
-              onClick={() => navigate(`/workspace/${workspaceId}`)}
+              onClick={() => navigate("/workspaces")}
+            >
+              <FiLayers />
+              <span>All Workspaces</span>
+            </button>
+
+            <button
+              className={`sidebar-item ${
+                location.pathname === `/workspace/${workspaceId}` ? "sidebar-item--active" : ""
+              }`}
+              onClick={() => workspaceId && navigate(`/workspace/${workspaceId}`)}
             >
               <FiLayers />
               <span>Workspace Home</span>

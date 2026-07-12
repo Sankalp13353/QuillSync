@@ -124,5 +124,63 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
+// PATCH /api/workspaces/:id
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+  try {
+    const membership = await prisma.workspaceMember.findUnique({
+      where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId: id } }
+    });
+    if (!membership || membership.role !== 'OWNER') return res.status(403).json({ error: 'Only owners can update this workspace' });
+    const updated = await prisma.workspace.update({ where: { id }, data: { name, description } });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/workspaces/:id
+router.delete('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const membership = await prisma.workspaceMember.findUnique({
+      where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId: id } }
+    });
+    if (!membership || membership.role !== 'OWNER') return res.status(403).json({ error: 'Only owners can delete this workspace' });
+    await prisma.$transaction([
+      prisma.documentTag.deleteMany({ where: { document: { workspaceId: id } } }),
+      prisma.comment.deleteMany({ where: { document: { workspaceId: id } } }),
+      prisma.document.deleteMany({ where: { workspaceId: id } }),
+      prisma.tag.deleteMany({ where: { workspaceId: id } }),
+      prisma.workspaceMember.deleteMany({ where: { workspaceId: id } }),
+      prisma.workspace.delete({ where: { id } })
+    ]);
+    res.json({ message: 'Workspace deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/workspaces/stats - Dashboard KPI data
+router.get('/stats', requireAuth, async (req, res) => {
+  try {
+    const memberships = await prisma.workspaceMember.findMany({
+      where: { userId: req.dbUser.id }
+    });
+    const workspaceIds = memberships.map(m => m.workspaceId);
+
+    const [totalDocs, totalWorkspaces, totalMembers] = await Promise.all([
+      prisma.document.count({ where: { workspaceId: { in: workspaceIds } } }),
+      prisma.workspace.count({ where: { id: { in: workspaceIds } } }),
+      prisma.workspaceMember.count({ where: { workspaceId: { in: workspaceIds } } })
+    ]);
+
+    res.json({ totalDocuments: totalDocs, totalWorkspaces, totalMembers });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
 

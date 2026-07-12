@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FiFileText, FiLayers, FiUsers } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
@@ -20,19 +21,23 @@ export default function DashboardPage() {
   const [workspaces, setWorkspaces] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [stats, setStats] = useState({ totalDocuments: 0, totalWorkspaces: 0, totalMembers: 0 });
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [search, setSearch] = useState("");
 
   const fetchDashboardData = async () => {
     try {
-      const [workspacesRes, documentsRes, notificationsRes] = await Promise.all([
+      const [workspacesRes, documentsRes, notificationsRes, statsRes] = await Promise.all([
         api.get("/workspaces"),
         api.get("/documents"),
-        api.get("/notifications")
+        api.get("/notifications"),
+        api.get("/workspaces/stats")
       ]);
       setWorkspaces(workspacesRes.data);
       setDocuments(documentsRes.data);
       setNotifications(notificationsRes.data);
+      setStats(statsRes.data);
     } catch (err) {
       console.error("Error loading dashboard data:", err);
     } finally {
@@ -40,14 +45,19 @@ export default function DashboardPage() {
     }
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useEffect(() => { fetchDashboardData(); }, []);
 
   const handleWorkspaceCreated = (workspace) => {
     setShowCreateModal(false);
     navigate(`/workspace/${workspace.id}`);
   };
+
+  const filteredWorkspaces = workspaces.filter((w) =>
+    w.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const filteredDocuments = documents.filter((d) =>
+    d.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
@@ -67,29 +77,15 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      {/* Sidebar */}
       <Sidebar />
-
-      {/* Main Content */}
       <main className="main">
-        {/* Header */}
-        <Header />
-
-        {/* Dashboard Content */}
+        <Header search={search} onSearch={setSearch} />
         <div className="content">
 
           {/* Top Section */}
           <div className="dashboard-top">
-            <WelcomeSection
-              user={{
-                name: displayName,
-              }}
-            />
-
-            <CreateWorkspaceButton
-              onCreate={() => setShowCreateModal(true)}
-            />
-
+            <WelcomeSection user={{ name: displayName }} />
+            <CreateWorkspaceButton onCreate={() => setShowCreateModal(true)} />
             {showCreateModal && (
               <CreateWorkspaceModal
                 onClose={() => setShowCreateModal(false)}
@@ -98,26 +94,40 @@ export default function DashboardPage() {
             )}
           </div>
 
+          {/* KPI Cards */}
+          <div className="kpi-grid">
+            <div className="kpi-card">
+              <div className="kpi-icon"><FiFileText /></div>
+              <div>
+                <p className="kpi-label">Total Documents</p>
+                <p className="kpi-value">{stats.totalDocuments}</p>
+              </div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-icon"><FiLayers /></div>
+              <div>
+                <p className="kpi-label">Workspaces</p>
+                <p className="kpi-value">{stats.totalWorkspaces}</p>
+              </div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-icon"><FiUsers /></div>
+              <div>
+                <p className="kpi-label">Total Members</p>
+                <p className="kpi-value">{stats.totalMembers}</p>
+              </div>
+            </div>
+          </div>
+
           {/* Dashboard Grid */}
           <div className="dashboard-grid">
-
-            {/* Left Column */}
             <div className="dashboard-left">
-
-              <RecentWorkspaces workspaces={workspaces} />
-
-              <RecentDocuments documents={documents} />
-
+              <RecentWorkspaces workspaces={filteredWorkspaces} />
+              <RecentDocuments documents={filteredDocuments} />
             </div>
-
-            {/* Right Column */}
-
             <div className="dashboard-right">
-
               <Notifications notifications={notifications} />
-
             </div>
-
           </div>
 
         </div>

@@ -1,0 +1,111 @@
+.ws-page-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.ws-page-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.ws-page-sub {
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.ws-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 30px;
+  max-width: 480px;
+}
+
+.ws-search-icon { color: #64748b; }
+
+.ws-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 15px;
+}
+
+.ws-search-input::placeholder { color: #475569; }
+
+.ws-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.ws-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: .25s;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.ws-card:hover { border-color: #2563eb; transform: translateY(-2px); }
+
+.ws-card-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.ws-card-avatar--indigo { background: #4f46e5; }
+.ws-card-avatar--emerald { background: #059669; }
+.ws-card-avatar--blue { background: #2563eb; }
+.ws-card-avatar--rose { background: #e11d48; }
+.ws-card-avatar--violet { background: #7c3aed; }
+.ws-card-avatar--amber { background: #d97706; }
+
+.ws-card-info h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.ws-card-info p { color: #94a3b8; font-size: 13px; margin-bottom: 14px; }
+
+.ws-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.ws-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ws-role {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ws-role--owner { background: #1d4ed8; color: white; }
+.ws-role--editor { background: #047857; color: white; }
+.ws-role--viewer { background: #6d28d9; color: white; }
