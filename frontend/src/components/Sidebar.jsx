@@ -111,7 +111,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-
       <div className="sidebar-footer">
 
         <button

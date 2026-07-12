@@ -1,7 +1,9 @@
 import React from "react";
+import { useAuth } from "../context/AuthContext";
 
-const WelcomeSection = ({ user }) => {
-  const userName = user?.name || "User";
+const WelcomeSection = () => {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   const hour = new Date().getHours();
 

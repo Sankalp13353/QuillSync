@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
@@ -7,12 +7,53 @@ import CreateWorkspaceButton from "../../components/CreateWorkspaceButton";
 import RecentWorkspaces from "../../components/RecentWorkspaces";
 import RecentDocuments from "../../components/RecentDocuments";
 import Notifications from "../../components/Notifications";
+import api from "../../utils/api";
 
 import "./DashboardPage.css";
 
 export default function DashboardPage() {
-  const handleCreateWorkspace = () => {
-    console.log("Create Workspace");
+  const [workspaces, setWorkspaces] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [wsRes, docsRes, notifsRes] = await Promise.all([
+        api.get("/workspaces"),
+        api.get("/documents"),
+        api.get("/notifications")
+      ]);
+      setWorkspaces(wsRes.data);
+      setDocuments(docsRes.data);
+      setNotifications(notifsRes.data);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const handleCreateWorkspace = async () => {
+    const name = window.prompt("Enter new workspace name:");
+    if (!name || !name.trim()) return;
+
+    const description = window.prompt("Enter workspace description (optional):") || "";
+
+    try {
+      await api.post("/workspaces", {
+        name: name.trim(),
+        description: description.trim()
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Error creating workspace:", err);
+      alert(err.response?.data?.error || "Failed to create workspace");
+    }
   };
 
   return (
@@ -30,11 +71,7 @@ export default function DashboardPage() {
 
           {/* Top Section */}
           <div className="dashboard-top">
-            <WelcomeSection
-              user={{
-                name: "Sankalp",
-              }}
-            />
+            <WelcomeSection />
 
             <CreateWorkspaceButton
               onCreate={handleCreateWorkspace}
@@ -42,26 +79,32 @@ export default function DashboardPage() {
           </div>
 
           {/* Dashboard Grid */}
-          <div className="dashboard-grid">
+          {loading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "40px", color: "#94a3b8" }}>
+              Loading dashboard data...
+            </div>
+          ) : (
+            <div className="dashboard-grid">
 
-            {/* Left Column */}
-            <div className="dashboard-left">
+              {/* Left Column */}
+              <div className="dashboard-left">
 
-              <RecentWorkspaces />
+                <RecentWorkspaces workspaces={workspaces} />
 
-              <RecentDocuments />
+                <RecentDocuments documents={documents} />
+
+              </div>
+
+              {/* Right Column */}
+
+              <div className="dashboard-right">
+
+                <Notifications notifications={notifications} onRefresh={fetchDashboardData} />
+
+              </div>
 
             </div>
-
-            {/* Right Column */}
-
-            <div className="dashboard-right">
-
-              <Notifications />
-
-            </div>
-
-          </div>
+          )}
 
         </div>
       </main>
