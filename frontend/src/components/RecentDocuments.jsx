@@ -8,14 +8,16 @@ const RecentDocuments = ({ documents }) => {
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     } catch {
-      return dateString;
+      return "";
     }
   };
 
   const openDocument = (workspaceId, documentId) => {
-    navigate(`/workspace/${workspaceId}/document/${documentId}`);
+    if (workspaceId && documentId) {
+      navigate(`/workspace/${workspaceId}/document/${documentId}`);
+    }
   };
 
   return (
@@ -25,15 +27,19 @@ const RecentDocuments = ({ documents }) => {
           <FiFileText />
           <h2>Recent Documents</h2>
         </div>
+
+        <button className="section-link" style={{ background: "none", border: "none", cursor: "pointer" }}>
+          View All
+        </button>
       </div>
 
       <div className="document-list">
         {!documents || documents.length === 0 ? (
-          <div style={{ color: "#94a3b8", padding: "20px 0", textAlign: "center" }}>
-            No recent documents found. Create one inside a workspace!
+          <div style={{ color: "#94a3b8", textAlign: "center", padding: "20px" }}>
+            No recent documents found.
           </div>
         ) : (
-          documents.slice(0, 5).map((document) => (
+          documents.map((document) => (
             <div
               className="document-item"
               key={document.id}
@@ -61,6 +67,7 @@ const RecentDocuments = ({ documents }) => {
               <button
                 className="workspace-menu-button"
                 onClick={() => openDocument(document.workspaceId, document.id)}
+                style={{ cursor: "pointer" }}
               >
                 Open
               </button>

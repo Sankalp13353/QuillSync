@@ -4,10 +4,20 @@ import { FiUsers, FiMoreHorizontal } from "react-icons/fi";
 
 const RecentWorkspaces = ({ workspaces }) => {
   const navigate = useNavigate();
-  const colors = ["indigo", "emerald", "blue", "rose", "violet"];
 
   const openWorkspace = (workspaceId) => {
     navigate(`/workspace/${workspaceId}`);
+  };
+
+  const colors = ["indigo", "emerald", "blue", "rose", "violet", "amber"];
+
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch {
+      return "Recently";
+    }
   };
 
   return (
@@ -16,12 +26,20 @@ const RecentWorkspaces = ({ workspaces }) => {
         <div className="section-header-title">
           <h2>Recent Workspaces</h2>
         </div>
+
+        <button
+          className="section-link"
+          onClick={() => navigate("/workspaces")}
+          style={{ cursor: "pointer", background: "none", border: "none" }}
+        >
+          View All
+        </button>
       </div>
 
       <div className="workspace-grid">
         {!workspaces || workspaces.length === 0 ? (
-          <div style={{ color: "#94a3b8", padding: "20px 0", gridColumn: "1 / -1", textAlign: "center" }}>
-            No workspaces found. Create one to get started!
+          <div style={{ color: "#94a3b8", gridColumn: "1 / -1", textAlign: "center", padding: "30px" }}>
+            No workspaces found. Click "Create Workspace" above to get started!
           </div>
         ) : (
           workspaces.map((workspace, index) => {
@@ -31,6 +49,7 @@ const RecentWorkspaces = ({ workspaces }) => {
                 key={workspace.id}
                 className={`workspace-card workspace-card--${color}`}
                 onClick={() => openWorkspace(workspace.id)}
+                style={{ cursor: "pointer" }}
               >
                 <div className="workspace-card-left">
                   <div
@@ -47,6 +66,8 @@ const RecentWorkspaces = ({ workspaces }) => {
                     <p className="workspace-meta">
                       <FiUsers />
                       {workspace.members || 1} Members
+                      <span className="workspace-meta-sep">•</span>
+                      {formatDate(workspace.createdAt)}
                     </p>
                   </div>
                 </div>

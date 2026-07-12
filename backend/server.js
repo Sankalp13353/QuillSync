@@ -17,5 +17,5 @@ app.use('/api/workspaces', require('./app/routes/workspaces'));
 app.use('/api/documents', require('./app/routes/documents'));
 app.use('/api/notifications', require('./app/routes/notifications'));
 
-
 app.listen(port, () => console.log(`🚀 Server running on http://localhost:${port}`));
+

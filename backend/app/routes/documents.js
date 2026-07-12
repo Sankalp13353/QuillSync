@@ -88,10 +88,37 @@ router.post('/', requireAuth, async (req, res) => {
         workspaceId,
         authorId: req.dbUser.id,
         content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] }
+      },
+      include: {
+        author: {
+          select: { id: true, email: true }
+        }
       }
     });
 
+    // Create notifications for other workspace members
+    try {
+      const otherMembers = await prisma.workspaceMember.findMany({
+        where: {
+          workspaceId,
+          NOT: { userId: req.dbUser.id }
+        }
+      });
+
+      if (otherMembers.length > 0) {
+        await prisma.notification.createMany({
+          data: otherMembers.map(m => ({
+            userId: m.userId,
+            message: `${req.user.email.split('@')[0]} created a new document "${title}"`
+          }))
+        });
+      }
+    } catch (notifErr) {
+      console.error('Error creating notifications:', notifErr);
+    }
+
     res.status(201).json(doc);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

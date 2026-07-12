@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
 
-// GET /api/notifications
+// GET /api/notifications - Get all notifications for the authenticated user
 router.get('/', requireAuth, async (req, res) => {
   try {
     const notifications = await prisma.notification.findMany({
@@ -16,7 +16,7 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/notifications/:id/read
+// PUT /api/notifications/:id/read - Mark a notification as read
 router.put('/:id/read', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -25,11 +25,9 @@ router.put('/:id/read', requireAuth, async (req, res) => {
         id,
         userId: req.dbUser.id
       },
-      data: {
-        read: true
-      }
+      data: { read: true }
     });
-    res.json({ message: 'Notification marked as read', updatedCount: notification.count });
+    res.json({ message: 'Notification marked as read', updated: notification.count });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
