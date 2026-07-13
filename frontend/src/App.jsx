@@ -16,7 +16,6 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 
 // Workspace
 import WorkspacesPage from "./pages/Workspaces/WorkspacesPage";
-import WorkspaceHome from "./pages/Workspace/Home/WorkspaceHome";
 import MembersPage from "./pages/Workspace/Members/MembersPage";
 import WorkspaceSettings from "./pages/Workspace/Settings/WorkspaceSettings";
 
@@ -62,14 +61,7 @@ function App() {
             }
           />
 
-          <Route
-            path="/workspace/:id"
-            element={
-              <ProtectedRoute>
-                <WorkspaceHome />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/workspace/:id" element={<ProtectedRoute><WorkspacesPage /></ProtectedRoute>} />
 
           <Route
             path="/workspace/:id/members"
