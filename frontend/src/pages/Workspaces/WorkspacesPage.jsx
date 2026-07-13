@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiUsers, FiFileText, FiPlus, FiSearch } from "react-icons/fi";
+import { FiUsers, FiFileText, FiPlus } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
 import CreateWorkspaceModal from "../../components/CreateWorkspaceModal";
@@ -37,7 +37,7 @@ export default function WorkspacesPage() {
     <div className="dashboard-page">
       <Sidebar />
       <main className="main">
-        <Header />
+        <Header search={search} onSearch={setSearch} />
         <div className="content">
           <div className="ws-page-top">
             <div>
@@ -47,17 +47,6 @@ export default function WorkspacesPage() {
             <button className="create-workspace-btn" onClick={() => setShowModal(true)}>
               <FiPlus /> Create Workspace
             </button>
-          </div>
-
-          <div className="ws-search-wrap">
-            <FiSearch className="ws-search-icon" />
-            <input
-              type="text"
-              placeholder="Search workspaces..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="ws-search-input"
-            />
           </div>
 
           {loading ? (

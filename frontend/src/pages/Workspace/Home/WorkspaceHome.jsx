@@ -18,6 +18,7 @@ export default function WorkspaceHome() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
 
   const fetchWorkspaceData = async () => {
     setLoading(true);
@@ -40,6 +41,10 @@ export default function WorkspaceHome() {
   useEffect(() => {
     fetchWorkspaceData();
   }, [id]);
+
+  const filteredDocuments = documents.filter((d) =>
+    d.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -79,14 +84,13 @@ export default function WorkspaceHome() {
     <div className="workspace-page">
       <Sidebar />
       <main className="workspace-main">
-        <Header />
+        <Header search={search} onSearch={setSearch} />
         <div className="workspace-content">
           <WorkspaceHeader workspace={workspace} onDocumentCreated={() => fetchWorkspaceData()} />
           <div className="workspace-grid">
-            {/* Left Column */}
             <div className="workspace-left">
-              <DocumentsPreview documents={documents} />
-              <ActivityFeed documents={documents} />
+              <DocumentsPreview documents={filteredDocuments} />
+              <ActivityFeed documents={filteredDocuments} />
             </div>
             {/* Right Column */}
             <div className="workspace-right">
