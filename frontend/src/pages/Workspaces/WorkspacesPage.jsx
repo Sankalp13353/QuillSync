@@ -155,7 +155,7 @@ export default function WorkspacesPage() {
                       {filteredDocs.length === 0 ? (
                         <p className="ws-empty">No documents yet.</p>
                       ) : filteredDocs.map((doc) => (
-                        <div key={doc.id} className="ws-doc-item">
+                        <div key={doc.id} className="ws-doc-item" onClick={() => navigate(`/workspace/${id}/document/${doc.id}`)}>
                           <div className="ws-doc-icon"><FiFileText /></div>
                           <div className="ws-doc-info">
                             <h4>{doc.title}</h4>
