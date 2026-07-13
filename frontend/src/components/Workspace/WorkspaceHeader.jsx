@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiUserPlus } from "react-icons/fi";
+import { FiPlus, FiUserPlus, FiArrowLeft } from "react-icons/fi";
 import api from "../../utils/api";
 
 const WorkspaceHeader = ({ workspace, onDocumentCreated }) => {
@@ -31,12 +31,11 @@ const WorkspaceHeader = ({ workspace, onDocumentCreated }) => {
   return (
     <section className="workspace-header">
       <div className="workspace-header-left">
-        <h1 className="workspace-title">
-          {workspace?.name}
-        </h1>
-        <p className="workspace-description">
-          {workspace?.description || "No description provided."}
-        </p>
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          <FiArrowLeft /> Back
+        </button>
+        <h1 className="workspace-title">{workspace?.name}</h1>
+        <p className="workspace-description">{workspace?.description || "No description provided."}</p>
       </div>
 
       <div className="workspace-header-right">
