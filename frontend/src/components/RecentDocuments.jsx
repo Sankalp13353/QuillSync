@@ -43,34 +43,20 @@ const RecentDocuments = ({ documents }) => {
             <div
               className="document-item"
               key={document.id}
+              onClick={() => openDocument(document.workspaceId, document.id)}
+              style={{ cursor: "pointer" }}
             >
               <div className="document-item-left">
-                <div className="document-icon">
-                  <FiFileText />
-                </div>
-
+                <div className="document-icon"><FiFileText /></div>
                 <div>
-                  <h3 className="document-name">
-                    {document.title}
-                  </h3>
-
+                  <h3 className="document-name">{document.title}</h3>
                   <p className="document-meta">
                     {document.workspace?.name || "Workspace"}
-                    <span className="document-meta-sep">
-                      •
-                    </span>
+                    <span className="document-meta-sep">•</span>
                     {formatDate(document.updatedAt)}
                   </p>
                 </div>
               </div>
-
-              <button
-                className="workspace-menu-button"
-                onClick={() => openDocument(document.workspaceId, document.id)}
-                style={{ cursor: "pointer" }}
-              >
-                Open
-              </button>
             </div>
           ))
         )}

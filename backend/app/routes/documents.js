@@ -124,5 +124,38 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// PATCH /api/documents/:id — OWNER/MANAGER direct save (creates a new version)
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ error: 'content required' });
+  try {
+    const doc = await prisma.document.findUnique({ where: { id: req.params.id } });
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+    const membership = await prisma.workspaceMember.findUnique({
+      where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId: doc.workspaceId } }
+    });
+    if (!membership || !['OWNER', 'MANAGER'].includes(membership.role))
+      return res.status(403).json({ error: 'Only OWNER or MANAGER can directly save' });
+
+    const latest = await prisma.documentVersion.findFirst({
+      where: { documentId: doc.id },
+      orderBy: { version: 'desc' }
+    });
+    const nextVersion = (latest?.version ?? 0) + 1;
+
+    const [updated] = await prisma.$transaction([
+      prisma.document.update({ where: { id: doc.id }, data: { content } }),
+      prisma.documentVersion.create({
+        data: { documentId: doc.id, version: nextVersion, content, createdBy: req.dbUser.id }
+      })
+    ]);
+
+    res.json({ ...updated, version: nextVersion });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
 

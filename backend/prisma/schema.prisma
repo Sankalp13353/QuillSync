@@ -8,8 +8,15 @@ datasource db {
 
 enum Role {
   OWNER
+  MANAGER
   EDITOR
   VIEWER
+}
+
+enum DraftStatus {
+  OPEN
+  MERGED
+  CLOSED
 }
 
 model User {
@@ -23,6 +30,8 @@ model User {
   documents         Document[]
   notifications     Notification[]
   comments          Comment[]
+  documentVersions  DocumentVersion[]
+  documentDrafts    DocumentDraft[]
 }
 
 model Workspace {
@@ -62,6 +71,33 @@ model Document {
   author      User          @relation(fields: [authorId], references: [id])
   tags        DocumentTag[]
   comments    Comment[]
+  versions    DocumentVersion[]
+  drafts      DocumentDraft[]
+}
+
+model DocumentVersion {
+  id         String   @id @default(uuid())
+  documentId String
+  version    Int
+  content    Json
+  createdBy  String
+  createdAt  DateTime @default(now())
+
+  document   Document @relation(fields: [documentId], references: [id])
+  author     User     @relation(fields: [createdBy], references: [id])
+}
+
+model DocumentDraft {
+  id         String      @id @default(uuid())
+  documentId String
+  authorId   String
+  content    Json
+  status     DraftStatus @default(OPEN)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  document   Document @relation(fields: [documentId], references: [id])
+  author     User     @relation(fields: [authorId], references: [id])
 }
 
 model Tag {

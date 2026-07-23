@@ -1,33 +1,46 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiSend, FiTrash2, FiMessageSquare, FiFileText } from "react-icons/fi";
+import { FiArrowLeft, FiSend, FiTrash2, FiMessageSquare, FiFileText, FiGitPullRequest, FiClock } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
+import DocumentEditor from "./components/DocumentEditor";
+import PendingDraftsPanel from "./components/PendingDraftsPanel";
+import VersionHistoryPanel from "./components/VersionHistoryPanel";
 import "./DocumentPage.css";
+
+const TABS = ["Comments", "Drafts", "Versions"];
 
 export default function DocumentPage() {
   const { id: workspaceId, docId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  const [document, setDocument] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
 
-  const fetchData = async () => {
+  const [document, setDocument] = useState(null);
+  const [role, setRole] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [drafts, setDrafts] = useState([]);
+  const [versions, setVersions] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [activeTab, setActiveTab] = useState("Comments");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+
+  const fetchAll = async () => {
     try {
-      const [docsRes, commentsRes] = await Promise.all([
+      const [docsRes, commentsRes, wsRes] = await Promise.all([
         api.get(`/documents?workspaceId=${workspaceId}`),
-        api.get(`/comments?documentId=${docId}`)
+        api.get(`/comments?documentId=${docId}`),
+        api.get(`/workspaces/${workspaceId}`)
       ]);
       const doc = docsRes.data.find((d) => d.id === docId);
       setDocument(doc || null);
       setComments(commentsRes.data);
+
+      const me = wsRes.data.members?.find((m) => m.email === user?.email);
+      setRole(me?.role || "VIEWER");
     } catch (err) {
       console.error(err);
     } finally {
@@ -35,13 +48,75 @@ export default function DocumentPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, [docId]);
+  const fetchDrafts = async () => {
+    try {
+      const res = await api.get(`/drafts?documentId=${docId}`);
+      setDrafts(res.data);
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchVersions = async () => {
+    try {
+      const res = await api.get(`/versions?documentId=${docId}`);
+      setVersions(res.data);
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => { fetchAll(); }, [docId]);
+
+  useEffect(() => {
+    if (activeTab === "Drafts") fetchDrafts();
+    if (activeTab === "Versions") fetchVersions();
+  }, [activeTab]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
 
-  const handleSend = async (e) => {
+  const handleSave = async (content) => {
+    try {
+      await api.patch(`/documents/${docId}`, { content });
+      setDocument((prev) => ({ ...prev, content }));
+      fetchVersions();
+      alert("Document saved and new version created.");
+    } catch (err) {
+      alert(err.response?.data?.error || "Save failed");
+    }
+  };
+
+  const handleSubmitDraft = async (content) => {
+    try {
+      await api.post("/drafts", { documentId: docId, content });
+      alert("Draft submitted for review.");
+      fetchDrafts();
+    } catch (err) {
+      alert(err.response?.data?.error || "Submit failed");
+    }
+  };
+
+  const handleMerge = async (draftId) => {
+    try {
+      await api.post(`/drafts/${draftId}/merge`);
+      fetchDrafts();
+      fetchVersions();
+      const res = await api.get(`/documents?workspaceId=${workspaceId}`);
+      const doc = res.data.find((d) => d.id === docId);
+      setDocument(doc);
+    } catch (err) {
+      alert(err.response?.data?.error || "Merge failed");
+    }
+  };
+
+  const handleCloseDraft = async (draftId) => {
+    try {
+      await api.post(`/drafts/${draftId}/close`);
+      fetchDrafts();
+    } catch (err) {
+      alert(err.response?.data?.error || "Close failed");
+    }
+  };
+
+  const handleSendComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
     setSending(true);
@@ -49,20 +124,15 @@ export default function DocumentPage() {
       const res = await api.post("/comments", { documentId: docId, content: newComment.trim() });
       setComments((prev) => [...prev, res.data]);
       setNewComment("");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSending(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setSending(false); }
   };
 
-  const handleDelete = async (commentId) => {
+  const handleDeleteComment = async (commentId) => {
     try {
       await api.delete(`/comments/${commentId}`);
       setComments((prev) => prev.filter((c) => c.id !== commentId));
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const formatTime = (d) => {
@@ -75,8 +145,6 @@ export default function DocumentPage() {
       return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
     } catch { return ""; }
   };
-
-  const currentUserEmail = user?.email;
 
   return (
     <div className="dashboard-page">
@@ -99,70 +167,102 @@ export default function DocumentPage() {
               <div className="doc-content-area">
                 <div className="doc-title-row">
                   <div className="doc-title-icon"><FiFileText /></div>
-                  <h1 className="doc-title">{document.title}</h1>
+                  <div>
+                    <h1 className="doc-title">{document.title}</h1>
+                    <p className="doc-meta">
+                      By {document.author?.email?.split("@")[0]} &nbsp;·&nbsp; {formatTime(document.updatedAt)}
+                      &nbsp;·&nbsp; <span className="doc-role-badge">{role}</span>
+                    </p>
+                  </div>
                 </div>
-                <p className="doc-meta">
-                  By {document.author?.email?.split("@")[0]} &nbsp;·&nbsp; Last updated {formatTime(document.updatedAt)}
-                </p>
-                <div className="doc-body">
-                  <p style={{ color: "#64748b", fontStyle: "italic" }}>
-                    Document editor coming soon. Use the comments panel to collaborate.
-                  </p>
-                </div>
+                <DocumentEditor
+                  content={document.content}
+                  role={role}
+                  onSave={handleSave}
+                  onSubmitDraft={handleSubmitDraft}
+                />
               </div>
             )}
           </div>
 
-          {/* Right — Comments/Chat */}
+          {/* Right — Tabbed Panel */}
           <div className="doc-chat">
-            <div className="doc-chat-header">
-              <FiMessageSquare />
-              <h2>Comments</h2>
-              <span className="ws-count">{comments.length}</span>
+            <div className="doc-panel-tabs">
+              {TABS.map((tab) => (
+                <button
+                  key={tab}
+                  className={`doc-panel-tab ${activeTab === tab ? "active" : ""}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab === "Comments" && <FiMessageSquare />}
+                  {tab === "Drafts" && <FiGitPullRequest />}
+                  {tab === "Versions" && <FiClock />}
+                  {tab}
+                </button>
+              ))}
             </div>
 
-            <div className="doc-chat-messages">
-              {comments.length === 0 ? (
-                <p className="doc-chat-empty">No comments yet. Start the conversation!</p>
-              ) : (
-                comments.map((c) => {
-                  const isOwn = c.author?.email === currentUserEmail;
-                  return (
-                    <div key={c.id} className={`doc-chat-msg ${isOwn ? "doc-chat-msg--own" : ""}`}>
-                      <div className="doc-chat-avatar">
-                        {c.author?.email?.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="doc-chat-bubble">
-                        <div className="doc-chat-bubble-top">
-                          <span className="doc-chat-author">{c.author?.email?.split("@")[0]}</span>
-                          <span className="doc-chat-time">{formatTime(c.createdAt)}</span>
-                          {isOwn && (
-                            <button className="doc-chat-delete" onClick={() => handleDelete(c.id)}>
-                              <FiTrash2 />
-                            </button>
-                          )}
+            {/* Comments Tab */}
+            {activeTab === "Comments" && (
+              <>
+                <div className="doc-chat-messages">
+                  {comments.length === 0 ? (
+                    <p className="doc-chat-empty">No comments yet. Start the conversation!</p>
+                  ) : comments.map((c) => {
+                    const isOwn = c.author?.email === user?.email;
+                    return (
+                      <div key={c.id} className={`doc-chat-msg ${isOwn ? "doc-chat-msg--own" : ""}`}>
+                        <div className="doc-chat-avatar">{c.author?.email?.charAt(0).toUpperCase()}</div>
+                        <div className="doc-chat-bubble">
+                          <div className="doc-chat-bubble-top">
+                            <span className="doc-chat-author">{c.author?.email?.split("@")[0]}</span>
+                            <span className="doc-chat-time">{formatTime(c.createdAt)}</span>
+                            {isOwn && (
+                              <button className="doc-chat-delete" onClick={() => handleDeleteComment(c.id)}>
+                                <FiTrash2 />
+                              </button>
+                            )}
+                          </div>
+                          <p className="doc-chat-text">{c.content}</p>
                         </div>
-                        <p className="doc-chat-text">{c.content}</p>
                       </div>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={bottomRef} />
-            </div>
+                    );
+                  })}
+                  <div ref={bottomRef} />
+                </div>
+                <form className="doc-chat-input-row" onSubmit={handleSendComment}>
+                  <input
+                    type="text"
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="doc-chat-input"
+                  />
+                  <button type="submit" className="doc-chat-send" disabled={sending || !newComment.trim()}>
+                    <FiSend />
+                  </button>
+                </form>
+              </>
+            )}
 
-            <form className="doc-chat-input-row" onSubmit={handleSend}>
-              <input
-                type="text"
-                placeholder="Write a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="doc-chat-input"
-              />
-              <button type="submit" className="doc-chat-send" disabled={sending || !newComment.trim()}>
-                <FiSend />
-              </button>
-            </form>
+            {/* Drafts Tab */}
+            {activeTab === "Drafts" && (
+              <div className="doc-tab-content">
+                <PendingDraftsPanel
+                  drafts={drafts}
+                  role={role}
+                  onMerge={handleMerge}
+                  onClose={handleCloseDraft}
+                />
+              </div>
+            )}
+
+            {/* Versions Tab */}
+            {activeTab === "Versions" && (
+              <div className="doc-tab-content">
+                <VersionHistoryPanel versions={versions} />
+              </div>
+            )}
           </div>
 
         </div>
