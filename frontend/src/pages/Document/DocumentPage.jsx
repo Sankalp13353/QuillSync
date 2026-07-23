@@ -39,8 +39,7 @@ export default function DocumentPage() {
       setDocument(doc || null);
       setComments(commentsRes.data);
 
-      const me = wsRes.data.members?.find((m) => m.email === user?.email);
-      setRole(me?.role || "VIEWER");
+      setRole(wsRes.data.myRole || "VIEWER");
     } catch (err) {
       console.error(err);
     } finally {
