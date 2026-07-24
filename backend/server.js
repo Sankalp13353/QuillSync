@@ -15,5 +15,8 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', require('./app/routes/users'));
 app.use('/api/workspaces', require('./app/routes/workspaces'));
 app.use('/api/documents', require('./app/routes/documents'));
+app.use('/api/notifications', require('./app/routes/notifications'));
+app.use('/api/comments', require('./app/routes/comments'));
 
 app.listen(port, () => console.log(`🚀 Server running on http://localhost:${port}`));
+

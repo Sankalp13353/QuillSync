@@ -21,13 +21,16 @@ model User {
   ownedWorkspaces   Workspace[]
   memberships       WorkspaceMember[]
   documents         Document[]
+  notifications     Notification[]
+  comments          Comment[]
 }
 
 model Workspace {
-  id        String   @id @default(uuid())
-  name      String
-  ownerId   String
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
 
   owner     User              @relation(fields: [ownerId], references: [id])
   members   WorkspaceMember[]
@@ -58,6 +61,7 @@ model Document {
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
   author      User          @relation(fields: [authorId], references: [id])
   tags        DocumentTag[]
+  comments    Comment[]
 }
 
 model Tag {
@@ -80,3 +84,26 @@ model DocumentTag {
 
   @@id([documentId, tagId])
 }
+
+model Comment {
+  id          String   @id @default(uuid())
+  content     String
+  documentId  String
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  document    Document @relation(fields: [documentId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+

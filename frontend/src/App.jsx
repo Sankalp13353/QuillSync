@@ -15,7 +15,8 @@ import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 
 // Workspace
-import WorkspaceHome from "./pages/Workspace/Home/WorkspaceHome";
+import WorkspacesPage from "./pages/Workspaces/WorkspacesPage";
+import DocumentPage from "./pages/Document/DocumentPage";
 import MembersPage from "./pages/Workspace/Members/MembersPage";
 import WorkspaceSettings from "./pages/Workspace/Settings/WorkspaceSettings";
 
@@ -48,6 +49,11 @@ function App() {
           {/* Protected Routes */}
 
           <Route
+            path="/workspaces"
+            element={<ProtectedRoute><WorkspacesPage /></ProtectedRoute>}
+          />
+
+          <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
@@ -56,14 +62,9 @@ function App() {
             }
           />
 
-          <Route
-            path="/workspace/:id"
-            element={
-              <ProtectedRoute>
-                <WorkspaceHome />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/workspace/:id" element={<ProtectedRoute><WorkspacesPage /></ProtectedRoute>} />
+
+          <Route path="/workspace/:id/document/:docId" element={<ProtectedRoute><DocumentPage /></ProtectedRoute>} />
 
           <Route
             path="/workspace/:id/members"

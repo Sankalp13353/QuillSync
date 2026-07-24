@@ -1,5 +1,5 @@
-import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
   FiFeather,
   FiGrid,
@@ -10,18 +10,38 @@ import {
 } from "react-icons/fi";
 
 import { useAuth } from "../context/AuthContext";
+import api from "../utils/api";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
   const { signOut } = useAuth();
+  const [workspaceId, setWorkspaceId] = useState(id || null);
 
   const handleLogout = async () => {
     await signOut();
     navigate("/login", { replace: true });
   };
 
-  const workspaceId = 1; // Replace with dynamic id later
+  useEffect(() => {
+    if (id) {
+      setWorkspaceId(id);
+    } else {
+      const fetchFirstWorkspace = async () => {
+        try {
+          const response = await api.get("/workspaces");
+          if (response.data && response.data.length > 0) {
+            setWorkspaceId(response.data[0].id);
+          }
+        } catch (err) {
+          console.error("Sidebar error:", err);
+        }
+      };
+      fetchFirstWorkspace();
+    }
+  }, [id]);
+
 
   return (
     <aside className="sidebar">
@@ -53,9 +73,7 @@ const Sidebar = () => {
 
             <button
               className={`sidebar-item ${
-                location.pathname === "/dashboard"
-                  ? "sidebar-item--active"
-                  : ""
+                location.pathname === "/dashboard" ? "sidebar-item--active" : ""
               }`}
               onClick={() => navigate("/dashboard")}
             >
@@ -65,14 +83,12 @@ const Sidebar = () => {
 
             <button
               className={`sidebar-item ${
-                location.pathname === `/workspace/${workspaceId}`
-                  ? "sidebar-item--active"
-                  : ""
+                location.pathname === "/workspaces" || location.pathname.startsWith("/workspace/") ? "sidebar-item--active" : ""
               }`}
-              onClick={() => navigate(`/workspace/${workspaceId}`)}
+              onClick={() => navigate("/workspaces")}
             >
               <FiLayers />
-              <span>Workspace Home</span>
+              <span>Workspaces</span>
             </button>
 
             <button
