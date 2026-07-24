@@ -32,16 +32,18 @@ export default function DocumentPage() {
   const fetchAll = async () => {
     try {
       const initialDoc = location.state?.document || null;
+
       const [docRes, commentsRes, wsRes] = await Promise.all([
         initialDoc ? Promise.resolve({ data: initialDoc }) : api.get(`/documents/${docId}`),
-        api.get(`/comments?documentId=${docId}`),
+        api.get(`/comments?documentId=${docId}`).catch(() => ({ data: [] })),
         api.get(`/workspaces/${workspaceId}`)
       ]);
-      setDocument(docRes.data);
+
+      setDocument(docRes.data?.id ? docRes.data : null);
       setComments(commentsRes.data);
       setRole(wsRes.data.myRole || "VIEWER");
     } catch (err) {
-      console.error(err);
+      console.error("fetchAll error:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
