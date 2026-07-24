@@ -14,7 +14,8 @@ const Header = ({ search, onSearch }) => {
   const displayEmail = user?.email || "";
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const fetchNotifications = async () => {
+  const fetch
+  Notifications = async () => {
     setLoading(true);
     try {
       const res = await api.get("/notifications");

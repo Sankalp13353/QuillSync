@@ -124,6 +124,26 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/documents/:id — fetch single document
+router.get('/:id', requireAuth, async (req, res) => {
+  try {
+    const doc = await prisma.document.findUnique({
+      where: { id: req.params.id },
+      include: { author: { select: { id: true, email: true } } }
+    });
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+    const membership = await prisma.workspaceMember.findUnique({
+      where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId: doc.workspaceId } }
+    });
+    if (!membership) return res.status(403).json({ error: 'Access denied' });
+
+    res.json(doc);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PATCH /api/documents/:id — OWNER/MANAGER direct save (creates a new version)
 router.patch('/:id', requireAuth, async (req, res) => {
   const { content } = req.body;

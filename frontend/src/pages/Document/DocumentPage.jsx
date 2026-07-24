@@ -30,15 +30,13 @@ export default function DocumentPage() {
 
   const fetchAll = async () => {
     try {
-      const [docsRes, commentsRes, wsRes] = await Promise.all([
-        api.get(`/documents?workspaceId=${workspaceId}`),
+      const [docRes, commentsRes, wsRes] = await Promise.all([
+        api.get(`/documents/${docId}`),
         api.get(`/comments?documentId=${docId}`),
         api.get(`/workspaces/${workspaceId}`)
       ]);
-      const doc = docsRes.data.find((d) => d.id === docId);
-      setDocument(doc || null);
+      setDocument(docRes.data);
       setComments(commentsRes.data);
-
       setRole(wsRes.data.myRole || "VIEWER");
     } catch (err) {
       console.error(err);
@@ -98,9 +96,8 @@ export default function DocumentPage() {
       await api.post(`/drafts/${draftId}/merge`);
       fetchDrafts();
       fetchVersions();
-      const res = await api.get(`/documents?workspaceId=${workspaceId}`);
-      const doc = res.data.find((d) => d.id === docId);
-      setDocument(doc);
+      const res = await api.get(`/documents/${docId}`);
+      setDocument(res.data);
     } catch (err) {
       alert(err.response?.data?.error || "Merge failed");
     }
