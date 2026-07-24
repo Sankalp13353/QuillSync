@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FiArrowLeft, FiSend, FiTrash2, FiMessageSquare, FiFileText, FiGitPullRequest, FiClock } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
@@ -15,6 +15,7 @@ const TABS = ["Comments", "Drafts", "Versions"];
 export default function DocumentPage() {
   const { id: workspaceId, docId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const bottomRef = useRef(null);
 
@@ -30,8 +31,9 @@ export default function DocumentPage() {
 
   const fetchAll = async () => {
     try {
+      const initialDoc = location.state?.document || null;
       const [docRes, commentsRes, wsRes] = await Promise.all([
-        api.get(`/documents/${docId}`),
+        initialDoc ? Promise.resolve({ data: initialDoc }) : api.get(`/documents/${docId}`),
         api.get(`/comments?documentId=${docId}`),
         api.get(`/workspaces/${workspaceId}`)
       ]);

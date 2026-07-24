@@ -64,7 +64,7 @@ export default function WorkspacesPage() {
       const res = await api.post("/documents", { title: newDocTitle.trim(), workspaceId: id });
       setNewDocTitle("");
       setCreatingDoc(false);
-      navigate(`/workspace/${id}/document/${res.data.id}`);
+      navigate(`/workspace/${id}/document/${res.data.id}`, { state: { document: res.data } });
     } catch (err) {
       alert(err.response?.data?.error || "Failed to create document");
     }
