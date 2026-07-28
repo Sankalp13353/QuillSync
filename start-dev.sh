@@ -29,15 +29,13 @@ fi
 echo -e "${GREEN}✅ Dependencies ready!${NC}"
 echo ""
 
-cd backend && npm run dev &
+(cd backend && npm run dev) &
 BACKEND_PID=$!
-cd ..
 
 sleep 2
 
-cd frontend && npm run dev &
+(cd frontend && npm run dev) &
 FRONTEND_PID=$!
-cd ..
 
 trap "kill $BACKEND_PID $FRONTEND_PID" EXIT
 

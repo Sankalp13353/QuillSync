@@ -2,9 +2,9 @@ const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
 
-// GET /api/documents - List recent documents (optionally filtered by workspaceId)
+// GET /api/documents - List recent documents (optionally filtered by workspaceId and folderId)
 router.get('/', requireAuth, async (req, res) => {
-  const { workspaceId } = req.query;
+  const { workspaceId, folderId } = req.query;
 
   try {
     if (workspaceId) {
@@ -22,10 +22,16 @@ router.get('/', requireAuth, async (req, res) => {
       }
 
       const docs = await prisma.document.findMany({
-        where: { workspaceId },
+        where: { 
+          workspaceId,
+          folderId: folderId || null
+        },
         include: {
           author: {
             select: { id: true, email: true }
+          },
+          tags: {
+            include: { tag: true }
           }
         },
         orderBy: { updatedAt: 'desc' }
@@ -63,7 +69,7 @@ router.get('/', requireAuth, async (req, res) => {
 
 // POST /api/documents - Create a new document in a workspace
 router.post('/', requireAuth, async (req, res) => {
-  const { title, workspaceId } = req.body;
+  const { title, workspaceId, folderId, tagIds } = req.body;
   if (!title || !workspaceId) {
     return res.status(400).json({ error: 'Title and workspaceId are required' });
   }
@@ -86,12 +92,21 @@ router.post('/', requireAuth, async (req, res) => {
       data: {
         title,
         workspaceId,
+        folderId: folderId || null,
         authorId: req.dbUser.id,
-        content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] }
+        content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] },
+        ...(tagIds && tagIds.length > 0 && {
+          tags: {
+            create: tagIds.map(tagId => ({ tagId }))
+          }
+        })
       },
       include: {
         author: {
           select: { id: true, email: true }
+        },
+        tags: {
+          include: { tag: true }
         }
       }
     });
