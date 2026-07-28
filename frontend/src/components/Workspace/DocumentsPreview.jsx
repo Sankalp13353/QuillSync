@@ -57,7 +57,7 @@ const DocumentsPreview = ({ documents, folders = [], folderId }) => {
         )}
 
         {folders.map(folder => (
-          <div className="document-card" key={folder.id} onClick={() => openFolder(folder.id)} style={{ cursor: 'pointer' }}>
+          <div className="folder-card" key={folder.id} onClick={() => openFolder(folder.id)} style={{ cursor: 'pointer' }}>
             <div className="document-left">
               <div className="document-icon" style={{ color: '#3b82f6' }}><FiFolder /></div>
               <div className="document-info">

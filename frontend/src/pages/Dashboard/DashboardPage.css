@@ -595,21 +595,41 @@ a {
    RECENT DOCUMENTS
 ===================================================== */
 
-.documents-section{
-
-    margin-bottom:40px;
-
+.documents-section {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
 }
 
-.document-list{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:16px;
-
+.document-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    padding-right: 8px; /* space for scrollbar */
 }
+
+/* Custom scrollbar for document list */
+.document-list::-webkit-scrollbar {
+    width: 6px;
+}
+.document-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.document-list::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 3px;
+}
+.document-list::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+}
+
+
 
 .document-item{
 
