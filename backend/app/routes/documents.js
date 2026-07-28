@@ -139,5 +139,52 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// Update a document (e.g. content or title)
+router.patch('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { title, content } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      include: { workspace: true }
+    });
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Verify user is a member of the workspace
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId: document.workspaceId
+        }
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Update document
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+
+    const updatedDocument = await prisma.document.update({
+      where: { id },
+      data: updateData
+    });
+
+    res.json(updatedDocument);
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: 'Failed to update document' });
+  }
+});
+
 module.exports = router;
 

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiSend, FiTrash2, FiMessageSquare, FiFileText } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
+import Editor from "../../components/Editor/Editor";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
 import "./DocumentPage.css";
@@ -17,6 +18,7 @@ export default function DocumentPage() {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("Saved");
   const bottomRef = useRef(null);
 
   const fetchData = async () => {
@@ -40,6 +42,17 @@ export default function DocumentPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
+
+  const handleSaveDocument = async (jsonContent) => {
+    setSaveStatus("Saving...");
+    try {
+      await api.patch(`/documents/${docId}`, { content: jsonContent });
+      setSaveStatus("Saved");
+    } catch (err) {
+      console.error("Failed to save document:", err);
+      setSaveStatus("Error saving");
+    }
+  };
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -96,18 +109,22 @@ export default function DocumentPage() {
             ) : !document ? (
               <p style={{ color: "#f43f5e" }}>Document not found.</p>
             ) : (
-              <div className="doc-content-area">
+              <div className="doc-content-area" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <div className="doc-title-row">
                   <div className="doc-title-icon"><FiFileText /></div>
                   <h1 className="doc-title">{document.title}</h1>
                 </div>
-                <p className="doc-meta">
-                  By {document.author?.email?.split("@")[0]} &nbsp;·&nbsp; Last updated {formatTime(document.updatedAt)}
-                </p>
-                <div className="doc-body">
-                  <p style={{ color: "#64748b", fontStyle: "italic" }}>
-                    Document editor coming soon. Use the comments panel to collaborate.
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                  <p className="doc-meta" style={{ margin: 0 }}>
+                    By {document.author?.email?.split("@")[0]} &nbsp;·&nbsp; Last updated {formatTime(document.updatedAt)}
                   </p>
+                  <span style={{ fontSize: '12px', color: saveStatus === 'Error saving' ? '#f43f5e' : '#64748b', fontWeight: '500' }}>
+                    {saveStatus}
+                  </span>
+                </div>
+                
+                <div className="doc-body" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', background: 'transparent', border: 'none' }}>
+                  <Editor initialContent={document.content} onSave={handleSaveDocument} />
                 </div>
               </div>
             )}

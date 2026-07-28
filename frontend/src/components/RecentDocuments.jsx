@@ -28,7 +28,11 @@ const RecentDocuments = ({ documents }) => {
           <h2>Recent Documents</h2>
         </div>
 
-        <button className="section-link" style={{ background: "none", border: "none", cursor: "pointer" }}>
+        <button 
+          className="section-link" 
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+          onClick={() => navigate('/workspaces')}
+        >
           View All
         </button>
       </div>
