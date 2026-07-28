@@ -73,6 +73,26 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/workspaces/stats - Dashboard KPI data
+router.get('/stats', requireAuth, async (req, res) => {
+  try {
+    const memberships = await prisma.workspaceMember.findMany({
+      where: { userId: req.dbUser.id }
+    });
+    const workspaceIds = memberships.map(m => m.workspaceId);
+
+    const [totalDocs, totalWorkspaces, totalMembers] = await Promise.all([
+      prisma.document.count({ where: { workspaceId: { in: workspaceIds } } }),
+      prisma.workspace.count({ where: { id: { in: workspaceIds } } }),
+      prisma.workspaceMember.count({ where: { workspaceId: { in: workspaceIds } } })
+    ]);
+
+    res.json({ totalDocuments: totalDocs, totalWorkspaces, totalMembers });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/workspaces/:id - Get detailed workspace info
 router.get('/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
@@ -162,25 +182,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/workspaces/stats - Dashboard KPI data
-router.get('/stats', requireAuth, async (req, res) => {
-  try {
-    const memberships = await prisma.workspaceMember.findMany({
-      where: { userId: req.dbUser.id }
-    });
-    const workspaceIds = memberships.map(m => m.workspaceId);
 
-    const [totalDocs, totalWorkspaces, totalMembers] = await Promise.all([
-      prisma.document.count({ where: { workspaceId: { in: workspaceIds } } }),
-      prisma.workspace.count({ where: { id: { in: workspaceIds } } }),
-      prisma.workspaceMember.count({ where: { workspaceId: { in: workspaceIds } } })
-    ]);
-
-    res.json({ totalDocuments: totalDocs, totalWorkspaces, totalMembers });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 module.exports = router;
 
