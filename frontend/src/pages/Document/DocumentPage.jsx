@@ -4,6 +4,7 @@ import { FiArrowLeft, FiSend, FiTrash2, FiMessageSquare, FiFileText } from "reac
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
 import Editor from "../../components/Editor/Editor";
+import DocumentTags from "../../components/Document/DocumentTags";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
 import "./DocumentPage.css";
@@ -113,13 +114,21 @@ export default function DocumentPage() {
                   <div className="doc-title-icon"><FiFileText /></div>
                   <h1 className="doc-title">{document.title}</h1>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <p className="doc-meta" style={{ margin: 0 }}>
                     By {document.author?.email?.split("@")[0]} &nbsp;·&nbsp; Last updated {formatTime(document.updatedAt)}
                   </p>
                   <span style={{ fontSize: '12px', color: saveStatus === 'Error saving' ? '#f43f5e' : '#64748b', fontWeight: '500' }}>
                     {saveStatus}
                   </span>
+                </div>
+                
+                <div style={{ marginBottom: '32px' }}>
+                  <DocumentTags 
+                    document={document} 
+                    workspaceId={workspaceId} 
+                    onTagsUpdated={(updatedDoc) => setDocument(updatedDoc)} 
+                  />
                 </div>
                 
                 <div className="doc-body" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', background: 'transparent', border: 'none' }}>

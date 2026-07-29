@@ -189,10 +189,10 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Update a document (e.g. content or title)
+// Update a document (e.g. content, title, or tags)
 router.patch('/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, content, tagIds } = req.body;
   const userId = req.dbUser.id;
 
   try {
@@ -223,10 +223,21 @@ router.patch('/:id', requireAuth, async (req, res) => {
     const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (content !== undefined) updateData.content = content;
+    if (tagIds !== undefined) {
+      updateData.tags = {
+        deleteMany: {},
+        create: tagIds.map(tagId => ({ tagId }))
+      };
+    }
 
     const updatedDocument = await prisma.document.update({
       where: { id },
-      data: updateData
+      data: updateData,
+      include: {
+        author: { select: { id: true, email: true } },
+        workspace: true,
+        tags: { include: { tag: true } }
+      }
     });
 
     res.json(updatedDocument);
