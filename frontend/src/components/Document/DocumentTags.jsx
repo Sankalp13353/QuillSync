@@ -21,8 +21,8 @@ export default function DocumentTags({ document, workspaceId, onTagsUpdated }) {
         setIsCreating(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    window.document.addEventListener('mousedown', handleClickOutside);
+    return () => window.document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
