@@ -55,6 +55,12 @@ router.get('/', requireAuth, async (req, res) => {
         },
         workspace: {
           select: { id: true, name: true }
+        },
+        folder: {
+          select: { id: true, name: true }
+        },
+        tags: {
+          include: { tag: true }
         }
       },
       orderBy: { updatedAt: 'desc' },
