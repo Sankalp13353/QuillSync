@@ -139,11 +139,55 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/documents/:id - Get a single document by ID
+router.get('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.dbUser.id;
+
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: { id: true, email: true }
+        },
+        workspace: true,
+        tags: {
+          include: { tag: true }
+        }
+      }
+    });
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Verify user is a member of the workspace
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId: document.workspaceId
+        }
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json(document);
+  } catch (error) {
+    console.error('Error fetching document:', error);
+    res.status(500).json({ error: 'Failed to fetch document' });
+  }
+});
+
 // Update a document (e.g. content or title)
-router.patch('/:id', authenticateToken, async (req, res) => {
+router.patch('/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   const { title, content } = req.body;
-  const userId = req.user.id;
+  const userId = req.dbUser.id;
 
   try {
     const document = await prisma.document.findUnique({

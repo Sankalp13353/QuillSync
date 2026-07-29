@@ -23,12 +23,11 @@ export default function DocumentPage() {
 
   const fetchData = async () => {
     try {
-      const [docsRes, commentsRes] = await Promise.all([
-        api.get(`/documents?workspaceId=${workspaceId}`),
+      const [docRes, commentsRes] = await Promise.all([
+        api.get(`/documents/${docId}`),
         api.get(`/comments?documentId=${docId}`)
       ]);
-      const doc = docsRes.data.find((d) => d.id === docId);
-      setDocument(doc || null);
+      setDocument(docRes.data);
       setComments(commentsRes.data);
     } catch (err) {
       console.error(err);
