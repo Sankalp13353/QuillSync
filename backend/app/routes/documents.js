@@ -2,9 +2,9 @@ const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
 
-// GET /api/documents - List recent documents (optionally filtered by workspaceId)
+// GET /api/documents - List recent documents (optionally filtered by workspaceId and folderId)
 router.get('/', requireAuth, async (req, res) => {
-  const { workspaceId } = req.query;
+  const { workspaceId, folderId } = req.query;
 
   try {
     if (workspaceId) {
@@ -22,10 +22,16 @@ router.get('/', requireAuth, async (req, res) => {
       }
 
       const docs = await prisma.document.findMany({
-        where: { workspaceId },
+        where: { 
+          workspaceId,
+          folderId: folderId || null
+        },
         include: {
           author: {
             select: { id: true, email: true }
+          },
+          tags: {
+            include: { tag: true }
           }
         },
         orderBy: { updatedAt: 'desc' }
@@ -49,6 +55,12 @@ router.get('/', requireAuth, async (req, res) => {
         },
         workspace: {
           select: { id: true, name: true }
+        },
+        folder: {
+          select: { id: true, name: true }
+        },
+        tags: {
+          include: { tag: true }
         }
       },
       orderBy: { updatedAt: 'desc' },
@@ -63,7 +75,7 @@ router.get('/', requireAuth, async (req, res) => {
 
 // POST /api/documents - Create a new document in a workspace
 router.post('/', requireAuth, async (req, res) => {
-  const { title, workspaceId } = req.body;
+  const { title, workspaceId, folderId, tagIds } = req.body;
   if (!title || !workspaceId) {
     return res.status(400).json({ error: 'Title and workspaceId are required' });
   }
@@ -86,12 +98,21 @@ router.post('/', requireAuth, async (req, res) => {
       data: {
         title,
         workspaceId,
+        folderId: folderId || null,
         authorId: req.dbUser.id,
-        content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] }
+        content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] },
+        ...(tagIds && tagIds.length > 0 && {
+          tags: {
+            create: tagIds.map(tagId => ({ tagId }))
+          }
+        })
       },
       include: {
         author: {
           select: { id: true, email: true }
+        },
+        tags: {
+          include: { tag: true }
         }
       }
     });
@@ -121,6 +142,108 @@ router.post('/', requireAuth, async (req, res) => {
 
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/documents/:id - Get a single document by ID
+router.get('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.dbUser.id;
+
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: { id: true, email: true }
+        },
+        workspace: true,
+        tags: {
+          include: { tag: true }
+        }
+      }
+    });
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Verify user is a member of the workspace
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId: document.workspaceId
+        }
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json(document);
+  } catch (error) {
+    console.error('Error fetching document:', error);
+    res.status(500).json({ error: 'Failed to fetch document' });
+  }
+});
+
+// Update a document (e.g. content, title, or tags)
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { title, content, tagIds } = req.body;
+  const userId = req.dbUser.id;
+
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id },
+      include: { workspace: true }
+    });
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Verify user is a member of the workspace
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId: document.workspaceId
+        }
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Update document
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+    if (tagIds !== undefined) {
+      updateData.tags = {
+        deleteMany: {},
+        create: tagIds.map(tagId => ({ tagId }))
+      };
+    }
+
+    const updatedDocument = await prisma.document.update({
+      where: { id },
+      data: updateData,
+      include: {
+        author: { select: { id: true, email: true } },
+        workspace: true,
+        tags: { include: { tag: true } }
+      }
+    });
+
+    res.json(updatedDocument);
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: 'Failed to update document' });
   }
 });
 

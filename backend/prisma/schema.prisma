@@ -36,6 +36,7 @@ model Workspace {
   members   WorkspaceMember[]
   documents Document[]
   tags      Tag[]
+  folders   Folder[]
 }
 
 model WorkspaceMember {
@@ -54,11 +55,13 @@ model Document {
   title       String
   content     Json     @default("{}")
   workspaceId String
+  folderId    String?
   authorId    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  folder      Folder?       @relation(fields: [folderId], references: [id])
   author      User          @relation(fields: [authorId], references: [id])
   tags        DocumentTag[]
   comments    Comment[]
@@ -67,12 +70,26 @@ model Document {
 model Tag {
   id          String   @id @default(uuid())
   name        String
+  color       String   @default("#94a3b8")
   workspaceId String
 
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
   documents   DocumentTag[]
 
   @@unique([name, workspaceId])
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+  name        String
+  workspaceId String
+  parentId    String?
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  parent      Folder?    @relation("FolderToFolder", fields: [parentId], references: [id])
+  subfolders  Folder[]   @relation("FolderToFolder")
+  documents   Document[]
 }
 
 model DocumentTag {

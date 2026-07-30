@@ -1,0 +1,247 @@
+.document-tags-container {
+  position: relative;
+  margin-top: 12px;
+}
+
+.document-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.document-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.tag-remove-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  margin-left: 6px;
+  margin-right: -4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 50%;
+  opacity: 0.6;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.tag-remove-btn:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.add-tag-btn {
+  background: transparent;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.add-tag-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #475569;
+}
+
+.tag-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tag-dropdown-header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.tag-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.no-tags {
+  padding: 12px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  margin: 0;
+}
+
+.tag-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  gap: 8px;
+}
+
+.tag-item:hover {
+  background: #f1f5f9;
+}
+
+.tag-item.selected {
+  background: #f8fafc;
+}
+
+.tag-color-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.tag-item-name {
+  flex: 1;
+  font-size: 14px;
+  color: #334155;
+}
+
+.tag-check {
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.tag-dropdown-footer {
+  border-top: 1px solid #e2e8f0;
+  padding: 12px;
+  background: #f8fafc;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.start-create-tag-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px;
+}
+
+.start-create-tag-btn:hover {
+  color: #2563eb;
+}
+
+.create-tag-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.create-tag-form input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.create-tag-form input:focus {
+  border-color: #3b82f6;
+}
+
+.color-picker-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.color-preset {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.color-preset:hover {
+  transform: scale(1.1);
+}
+
+.color-preset.selected {
+  border-color: #1e293b;
+  transform: scale(1.1);
+}
+
+.create-tag-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancel-create-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 10px;
+}
+
+.cancel-create-btn:hover {
+  color: #334155;
+}
+
+.submit-create-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.submit-create-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.submit-create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

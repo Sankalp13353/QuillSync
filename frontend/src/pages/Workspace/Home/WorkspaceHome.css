@@ -222,6 +222,23 @@
 
 }
 
+.folder-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    background: #111827;
+    transition: .25s;
+}
+
+.folder-card:hover {
+    border-color: #3b82f6;
+    background: #1e293b;
+    transform: translateY(-2px);
+}
+
 .document-left{
 
     display:flex;

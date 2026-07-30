@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 import Sidebar from "../../../components/Sidebar";
 import Header from "../../../components/Header";
@@ -16,6 +16,9 @@ export default function WorkspaceHome() {
   const { id } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [searchParams] = useSearchParams();
+  const folderId = searchParams.get("folderId");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
@@ -24,12 +27,14 @@ export default function WorkspaceHome() {
     setLoading(true);
     setError(null);
     try {
-      const [wsRes, docsRes] = await Promise.all([
+      const [wsRes, docsRes, foldersRes] = await Promise.all([
         api.get(`/workspaces/${id}`),
-        api.get(`/documents?workspaceId=${id}`)
+        api.get(`/documents?workspaceId=${id}${folderId ? `&folderId=${folderId}` : ''}`),
+        api.get(`/folders?workspaceId=${id}${folderId ? `&parentId=${folderId}` : ''}`)
       ]);
       setWorkspace(wsRes.data);
       setDocuments(docsRes.data);
+      setFolders(foldersRes.data);
     } catch (err) {
       console.error("Error fetching workspace data:", err);
       setError(err.response?.data?.error || "Failed to load workspace data");
@@ -40,7 +45,7 @@ export default function WorkspaceHome() {
 
   useEffect(() => {
     fetchWorkspaceData();
-  }, [id]);
+  }, [id, folderId]);
 
   const filteredDocuments = documents.filter((d) =>
     d.title.toLowerCase().includes(search.toLowerCase())
@@ -89,12 +94,12 @@ export default function WorkspaceHome() {
           <WorkspaceHeader workspace={workspace} onDocumentCreated={() => fetchWorkspaceData()} />
           <div className="workspace-grid">
             <div className="workspace-left">
-              <DocumentsPreview documents={filteredDocuments} />
+              <DocumentsPreview documents={filteredDocuments} folders={folders} folderId={folderId} />
               <ActivityFeed documents={filteredDocuments} />
             </div>
             {/* Right Column */}
             <div className="workspace-right">
-              <QuickActions />
+              <QuickActions onFolderCreated={fetchWorkspaceData} />
             </div>
           </div>
         </div>
