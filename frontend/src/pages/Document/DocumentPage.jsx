@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import { FiArrowLeft, FiSend, FiTrash2, FiMessageSquare, FiFileText, FiGitPullRequest, FiClock } from "react-icons/fi";
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
@@ -79,7 +80,7 @@ export default function DocumentPage() {
       await api.patch(`/documents/${docId}`, { content });
       setDocument((prev) => ({ ...prev, content }));
       fetchVersions();
-      alert("Document saved and new version created.");
+      toast.success("Document saved and new version created.");
     } catch (err) {
       alert(err.response?.data?.error || "Save failed");
     }

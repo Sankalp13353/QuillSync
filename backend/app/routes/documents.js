@@ -2,9 +2,12 @@ const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
 
+console.log("✅ documents.js loaded");
+
 // GET /api/documents - List recent documents (optionally filtered by workspaceId)
 router.get('/', requireAuth, async (req, res) => {
   const { workspaceId } = req.query;
+  console.log("📄 Requested document:", req.params.id);
 
   try {
     if (workspaceId) {
@@ -126,11 +129,16 @@ router.post('/', requireAuth, async (req, res) => {
 
 // GET /api/documents/:id — fetch single document
 router.get('/:id', requireAuth, async (req, res) => {
+  console.log("📄 Requested document:", req.params.id)
+
   try {
     const doc = await prisma.document.findUnique({
       where: { id: req.params.id },
       include: { author: { select: { id: true, email: true } } }
     });
+
+    console.log(JSON.stringify(doc.content, null, 2));  //<-----
+
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
     const membership = await prisma.workspaceMember.findUnique({
@@ -140,12 +148,21 @@ router.get('/:id', requireAuth, async (req, res) => {
 
     res.json(doc);
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    console.error("PATCH DOCUMENT ERROR");
+    console.error(err);
+    res.status(500).json({
+      error: err.message,
+      stack: err.stack,
+    });
+  } 
 });
 
 // PATCH /api/documents/:id — OWNER/MANAGER direct save (creates a new version)
 router.patch('/:id', requireAuth, async (req, res) => {
+  console.log("Content-Type:", req.headers["content-type"]);
+  console.log("Body:", req.body);
+
+  
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'content required' });
   try {
@@ -172,8 +189,13 @@ router.patch('/:id', requireAuth, async (req, res) => {
     ]);
 
     res.json({ ...updated, version: nextVersion });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  }catch (err) {
+    console.error("PATCH DOCUMENT ERROR");
+    console.error(err);
+    res.status(500).json({
+      error: err.message,
+      stack: err.stack,
+    });
   }
 });
 
