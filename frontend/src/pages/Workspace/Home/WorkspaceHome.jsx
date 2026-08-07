@@ -18,23 +18,28 @@ export default function WorkspaceHome() {
   const [documents, setDocuments] = useState([]);
   const [folders, setFolders] = useState([]);
   const [searchParams] = useSearchParams();
-  const folderId = searchParams.get("folderId");
+  const rawFolderId = searchParams.get("folderId");
+  const folderId = (!rawFolderId || rawFolderId === "null" || rawFolderId === "undefined") ? null : rawFolderId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
+
+  const [breadcrumbs, setBreadcrumbs] = useState([]);
 
   const fetchWorkspaceData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [wsRes, docsRes, foldersRes] = await Promise.all([
+      const [wsRes, docsRes, foldersRes, breadcrumbsRes] = await Promise.all([
         api.get(`/workspaces/${id}`),
         api.get(`/documents?workspaceId=${id}${folderId ? `&folderId=${folderId}` : ''}`),
-        api.get(`/folders?workspaceId=${id}${folderId ? `&parentId=${folderId}` : ''}`)
+        api.get(`/folders?workspaceId=${id}${folderId ? `&parentId=${folderId}` : ''}`),
+        folderId ? api.get(`/folders/${folderId}/breadcrumbs`) : Promise.resolve({ data: [] })
       ]);
       setWorkspace(wsRes.data);
       setDocuments(docsRes.data);
       setFolders(foldersRes.data);
+      setBreadcrumbs(breadcrumbsRes.data);
     } catch (err) {
       console.error("Error fetching workspace data:", err);
       setError(err.response?.data?.error || "Failed to load workspace data");
@@ -91,15 +96,15 @@ export default function WorkspaceHome() {
       <main className="workspace-main">
         <Header search={search} onSearch={setSearch} />
         <div className="workspace-content">
-          <WorkspaceHeader workspace={workspace} onDocumentCreated={() => fetchWorkspaceData()} />
+          <WorkspaceHeader workspace={workspace} folderId={folderId} folders={folders} onDocumentCreated={() => fetchWorkspaceData()} onFolderCreated={() => fetchWorkspaceData()} />
           <div className="workspace-grid">
             <div className="workspace-left">
-              <DocumentsPreview documents={filteredDocuments} folders={folders} folderId={folderId} />
+              <DocumentsPreview documents={filteredDocuments} folders={folders} folderId={folderId} breadcrumbs={breadcrumbs} onMoveSuccess={fetchWorkspaceData} />
               <ActivityFeed documents={filteredDocuments} />
             </div>
             {/* Right Column */}
             <div className="workspace-right">
-              <QuickActions onFolderCreated={fetchWorkspaceData} />
+              <QuickActions folders={folders} onFolderCreated={fetchWorkspaceData} onDocumentCreated={fetchWorkspaceData} />
             </div>
           </div>
         </div>
