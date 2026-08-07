@@ -99,12 +99,12 @@ export default function WorkspaceHome() {
           <WorkspaceHeader workspace={workspace} folderId={folderId} folders={folders} onDocumentCreated={() => fetchWorkspaceData()} onFolderCreated={() => fetchWorkspaceData()} />
           <div className="workspace-grid">
             <div className="workspace-left">
-              <DocumentsPreview documents={filteredDocuments} folders={folders} folderId={folderId} breadcrumbs={breadcrumbs} onMoveSuccess={fetchWorkspaceData} />
+              <DocumentsPreview workspace={workspace} documents={filteredDocuments} folders={folders} folderId={folderId} breadcrumbs={breadcrumbs} onMoveSuccess={fetchWorkspaceData} />
               <ActivityFeed documents={filteredDocuments} />
             </div>
             {/* Right Column */}
             <div className="workspace-right">
-              <QuickActions folders={folders} onFolderCreated={fetchWorkspaceData} onDocumentCreated={fetchWorkspaceData} />
+              <QuickActions workspace={workspace} folders={folders} onFolderCreated={fetchWorkspaceData} onDocumentCreated={fetchWorkspaceData} />
             </div>
           </div>
         </div>

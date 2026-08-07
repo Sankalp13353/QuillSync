@@ -112,5 +112,6 @@ model Notification {
 enum Role {
   OWNER
   EDITOR
+  COMMENTOR
   VIEWER
 }

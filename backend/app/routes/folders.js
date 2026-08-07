@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, hasWorkspaceRole } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
 
 // GET /api/folders?workspaceId=XYZ&parentId=ABC
@@ -42,11 +42,9 @@ router.post('/', requireAuth, async (req, res) => {
   }
 
   try {
-    const membership = await prisma.workspaceMember.findUnique({
-      where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId } }
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Access denied' });
+    const canCreate = await hasWorkspaceRole(req.dbUser.id, workspaceId, ['OWNER', 'EDITOR']);
+    if (!canCreate) {
+      return res.status(403).json({ error: 'Only owners or editors can create folders' });
     }
 
     const folder = await prisma.folder.create({
@@ -77,12 +75,9 @@ router.patch('/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Folder not found' });
     }
 
-    const membership = await prisma.workspaceMember.findUnique({
-      where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId: folder.workspaceId } }
-    });
-    
-    if (!membership) {
-      return res.status(403).json({ error: 'Access denied' });
+    const canEdit = await hasWorkspaceRole(req.dbUser.id, folder.workspaceId, ['OWNER', 'EDITOR']);
+    if (!canEdit) {
+      return res.status(403).json({ error: 'Only owners or editors can update folders' });
     }
 
     const updateData = {};
@@ -132,6 +127,42 @@ router.get('/:id/breadcrumbs', requireAuth, async (req, res) => {
     }
 
     res.json(breadcrumbs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/folders/:id
+router.delete('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const folder = await prisma.folder.findUnique({
+      where: { id }
+    });
+
+    if (!folder) {
+      return res.status(404).json({ error: 'Folder not found' });
+    }
+
+    const canDelete = await hasWorkspaceRole(req.dbUser.id, folder.workspaceId, ['OWNER', 'EDITOR']);
+    if (!canDelete) {
+      return res.status(403).json({ error: 'Only owners or editors can delete folders' });
+    }
+
+    // Assuming we don't have cascade delete configured manually for folder -> subfolders/documents
+    // For now, if folder has contents, let's reject delete, or implement a recursive delete.
+    const subdocs = await prisma.document.count({ where: { folderId: id } });
+    const subfolders = await prisma.folder.count({ where: { parentId: id } });
+    if (subdocs > 0 || subfolders > 0) {
+      return res.status(400).json({ error: 'Cannot delete folder because it is not empty' });
+    }
+
+    await prisma.folder.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Folder deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, hasWorkspaceRole } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
 
 // GET /api/documents - List recent documents (optionally filtered by workspaceId and folderId)
@@ -81,17 +81,9 @@ router.post('/', requireAuth, async (req, res) => {
   }
 
   try {
-    // Check if user is a member of this workspace
-    const membership = await prisma.workspaceMember.findUnique({
-      where: {
-        userId_workspaceId: {
-          userId: req.dbUser.id,
-          workspaceId
-        }
-      }
-    });
-    if (!membership) {
-      return res.status(403).json({ error: 'Access denied to this workspace' });
+    const canCreate = await hasWorkspaceRole(req.dbUser.id, workspaceId, ['OWNER', 'EDITOR']);
+    if (!canCreate) {
+      return res.status(403).json({ error: 'Only owners or editors can create documents' });
     }
 
     const doc = await prisma.document.create({
@@ -182,7 +174,7 @@ router.get('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    res.json(document);
+    res.json({ ...document, myRole: membership.role });
   } catch (error) {
     console.error('Error fetching document:', error);
     res.status(500).json({ error: 'Failed to fetch document' });
@@ -205,18 +197,9 @@ router.patch('/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Verify user is a member of the workspace
-    const membership = await prisma.workspaceMember.findUnique({
-      where: {
-        userId_workspaceId: {
-          userId,
-          workspaceId: document.workspaceId
-        }
-      }
-    });
-
-    if (!membership) {
-      return res.status(403).json({ error: 'Access denied' });
+    const canEdit = await hasWorkspaceRole(userId, document.workspaceId, ['OWNER', 'EDITOR']);
+    if (!canEdit) {
+      return res.status(403).json({ error: 'Only owners or editors can update documents' });
     }
 
     // Update document
@@ -245,6 +228,38 @@ router.patch('/:id', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error updating document:', error);
     res.status(500).json({ error: 'Failed to update document' });
+  }
+});
+
+// DELETE /api/documents/:id - Delete a document
+router.delete('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.dbUser.id;
+
+  try {
+    const document = await prisma.document.findUnique({
+      where: { id }
+    });
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const canDelete = await hasWorkspaceRole(userId, document.workspaceId, ['OWNER', 'EDITOR']);
+    if (!canDelete) {
+      return res.status(403).json({ error: 'Only owners or editors can delete documents' });
+    }
+
+    await prisma.$transaction([
+      prisma.documentTag.deleteMany({ where: { documentId: id } }),
+      prisma.comment.deleteMany({ where: { documentId: id } }),
+      prisma.document.delete({ where: { id } })
+    ]);
+
+    res.json({ message: 'Document deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting document:', error);
+    res.status(500).json({ error: 'Failed to delete document' });
   }
 });
 

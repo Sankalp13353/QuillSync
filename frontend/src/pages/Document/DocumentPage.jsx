@@ -90,6 +90,9 @@ export default function DocumentPage() {
   };
 
   const currentUserEmail = user?.email;
+  const myRole = document?.myRole || 'VIEWER';
+  const canEdit = myRole === 'OWNER' || myRole === 'EDITOR';
+  const canComment = myRole === 'OWNER' || myRole === 'EDITOR' || myRole === 'COMMENTOR';
 
   return (
     <div className="dashboard-page">
@@ -133,15 +136,26 @@ export default function DocumentPage() {
                 </div>
                 
                 <div style={{ marginBottom: '32px' }}>
-                  <DocumentTags 
-                    document={document} 
-                    workspaceId={workspaceId} 
-                    onTagsUpdated={(updatedDoc) => setDocument(updatedDoc)} 
-                  />
+                  {canEdit && (
+                    <DocumentTags 
+                      document={document} 
+                      workspaceId={workspaceId} 
+                      onTagsUpdated={(updatedDoc) => setDocument({ ...document, tags: updatedDoc.tags })} 
+                    />
+                  )}
+                  {!canEdit && document.tags && (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {document.tags.map(dt => (
+                        <span key={dt.tag.id} style={{ backgroundColor: dt.tag.color + '20', color: dt.tag.color, padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', border: `1px solid ${dt.tag.color}` }}>
+                          {dt.tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="doc-body" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', background: 'transparent', border: 'none' }}>
-                  <Editor initialContent={document.content} onSave={handleSaveDocument} />
+                  <Editor initialContent={document.content} onSave={canEdit ? handleSaveDocument : undefined} readOnly={!canEdit} />
                 </div>
               </div>
             )}
@@ -188,12 +202,13 @@ export default function DocumentPage() {
             <form className="doc-chat-input-row" onSubmit={handleSend}>
               <input
                 type="text"
-                placeholder="Write a comment..."
+                placeholder={canComment ? "Write a comment..." : "You do not have permission to comment."}
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="doc-chat-input"
+                disabled={!canComment}
               />
-              <button type="submit" className="doc-chat-send" disabled={sending || !newComment.trim()}>
+              <button type="submit" className="doc-chat-send" disabled={sending || !newComment.trim() || !canComment}>
                 <FiSend />
               </button>
             </form>

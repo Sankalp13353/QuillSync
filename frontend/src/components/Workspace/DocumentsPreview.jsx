@@ -3,11 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FiFileText, FiFolder, FiMoreVertical, FiMove, FiHome } from "react-icons/fi";
 import MoveModal from "./MoveModal";
 
-const DocumentsPreview = ({ documents, folders = [], folderId, breadcrumbs = [], onMoveSuccess }) => {
+const DocumentsPreview = ({ workspace, documents, folders = [], folderId, breadcrumbs = [], onMoveSuccess }) => {
   const navigate = useNavigate();
   const { id: workspaceId } = useParams();
   const [moveModalItem, setMoveModalItem] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+
+  const myRole = workspace?.myRole || 'VIEWER';
+  const canEdit = myRole === 'OWNER' || myRole === 'EDITOR';
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -102,26 +105,28 @@ const DocumentsPreview = ({ documents, folders = [], folderId, breadcrumbs = [],
               </div>
             </div>
             
-            <div style={{ position: 'relative' }}>
-              <button 
-                onClick={(e) => toggleMenu(e, `folder-${folder.id}`)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '8px' }}
-              >
-                <FiMoreVertical size={18} />
-              </button>
-              {openMenuId === `folder-${folder.id}` && (
-                <div style={{ position: 'absolute', right: 0, top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
-                  <div 
-                    onClick={(e) => handleMoveClick(e, { ...folder, type: 'folder' })}
-                    style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                  >
-                    <FiMove /> Move
+            {canEdit && (
+              <div style={{ position: 'relative' }}>
+                <button 
+                  onClick={(e) => toggleMenu(e, `folder-${folder.id}`)}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '8px' }}
+                >
+                  <FiMoreVertical size={18} />
+                </button>
+                {openMenuId === `folder-${folder.id}` && (
+                  <div style={{ position: 'absolute', right: 0, top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
+                    <div 
+                      onClick={(e) => handleMoveClick(e, { ...folder, type: 'folder' })}
+                      style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                    >
+                      <FiMove /> Move
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
 
@@ -171,26 +176,28 @@ const DocumentsPreview = ({ documents, folders = [], folderId, breadcrumbs = [],
               </div>
             </div>
             
-            <div style={{ position: 'relative' }}>
-              <button 
-                onClick={(e) => toggleMenu(e, `doc-${document.id}`)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '8px' }}
-              >
-                <FiMoreVertical size={18} />
-              </button>
-              {openMenuId === `doc-${document.id}` && (
-                <div style={{ position: 'absolute', right: 0, top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
-                  <div 
-                    onClick={(e) => handleMoveClick(e, { ...document, type: 'document' })}
-                    style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                  >
-                    <FiMove /> Move
+            {canEdit && (
+              <div style={{ position: 'relative' }}>
+                <button 
+                  onClick={(e) => toggleMenu(e, `doc-${document.id}`)}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '8px' }}
+                >
+                  <FiMoreVertical size={18} />
+                </button>
+                {openMenuId === `doc-${document.id}` && (
+                  <div style={{ position: 'absolute', right: 0, top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
+                    <div 
+                      onClick={(e) => handleMoveClick(e, { ...document, type: 'document' })}
+                      style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                    >
+                      <FiMove /> Move
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
         

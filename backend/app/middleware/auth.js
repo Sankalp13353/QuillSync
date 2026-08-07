@@ -39,5 +39,12 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-module.exports = { supabase, requireAuth };
+const hasWorkspaceRole = async (userId, workspaceId, allowedRoles) => {
+  const membership = await prisma.workspaceMember.findUnique({
+    where: { userId_workspaceId: { userId, workspaceId } }
+  });
+  return membership && allowedRoles.includes(membership.role);
+};
+
+module.exports = { supabase, requireAuth, hasWorkspaceRole };
 
