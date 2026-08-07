@@ -100,8 +100,17 @@ export default function DocumentPage() {
 
           {/* Left — Document */}
           <div className="doc-main">
-            <button className="back-btn" onClick={() => navigate(`/workspace/${workspaceId}`)}>
-              <FiArrowLeft /> Back to Workspace
+            <button 
+              className="back-btn" 
+              onClick={() => {
+                if (document?.folderId) {
+                  navigate(`/workspace/${workspaceId}?folderId=${document.folderId}`);
+                } else {
+                  navigate(`/workspace/${workspaceId}`);
+                }
+              }}
+            >
+              <FiArrowLeft /> Back
             </button>
 
             {loading ? (

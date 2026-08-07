@@ -83,12 +83,12 @@ const Sidebar = () => {
 
             <button
               className={`sidebar-item ${
-                location.pathname === "/workspaces" || location.pathname.startsWith("/workspace/") ? "sidebar-item--active" : ""
+                location.pathname === "/workspaces" || (location.pathname.startsWith("/workspace/") && !location.pathname.includes("/members") && !location.pathname.includes("/settings") && !location.pathname.includes("/document/")) ? "sidebar-item--active" : ""
               }`}
-              onClick={() => navigate("/workspaces")}
+              onClick={() => navigate(workspaceId ? `/workspace/${workspaceId}` : "/workspaces")}
             >
               <FiLayers />
-              <span>Workspaces</span>
+              <span>Workspace</span>
             </button>
 
             <button

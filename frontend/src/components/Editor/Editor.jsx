@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import "./Editor.css";
 
 const MenuBar = ({ editor }) => {
