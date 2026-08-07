@@ -6,44 +6,35 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  OWNER
-  EDITOR
-  VIEWER
-}
-
 model User {
-  id          String   @id @default(uuid())
-  supabaseId  String   @unique
-  email       String   @unique
-  createdAt   DateTime @default(now())
-
-  ownedWorkspaces   Workspace[]
-  memberships       WorkspaceMember[]
-  documents         Document[]
-  notifications     Notification[]
-  comments          Comment[]
+  id              String            @id @default(uuid())
+  supabaseId      String            @unique
+  email           String            @unique
+  createdAt       DateTime          @default(now())
+  comments        Comment[]
+  documents       Document[]
+  notifications   Notification[]
+  ownedWorkspaces Workspace[]
+  memberships     WorkspaceMember[]
 }
 
 model Workspace {
-  id          String   @id @default(uuid())
+  id          String            @id @default(uuid())
   name        String
-  description String?
   ownerId     String
-  createdAt   DateTime @default(now())
-
-  owner     User              @relation(fields: [ownerId], references: [id])
-  members   WorkspaceMember[]
-  documents Document[]
-  tags      Tag[]
-  folders   Folder[]
+  createdAt   DateTime          @default(now())
+  description String?
+  documents   Document[]
+  folders     Folder[]
+  tags        Tag[]
+  owner       User              @relation(fields: [ownerId], references: [id])
+  members     WorkspaceMember[]
 }
 
 model WorkspaceMember {
   userId      String
   workspaceId String
-  role        Role     @default(VIEWER)
-
+  role        Role      @default(VIEWER)
   user        User      @relation(fields: [userId], references: [id])
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -51,51 +42,47 @@ model WorkspaceMember {
 }
 
 model Document {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   title       String
-  content     Json     @default("{}")
+  content     Json          @default("{}")
   workspaceId String
-  folderId    String?
   authorId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
-  folder      Folder?       @relation(fields: [folderId], references: [id])
-  author      User          @relation(fields: [authorId], references: [id])
-  tags        DocumentTag[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  folderId    String?
   comments    Comment[]
+  author      User          @relation(fields: [authorId], references: [id])
+  folder      Folder?       @relation(fields: [folderId], references: [id])
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  tags        DocumentTag[]
 }
 
 model Tag {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   name        String
-  color       String   @default("#94a3b8")
   workspaceId String
-
-  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+  color       String        @default("#94a3b8")
   documents   DocumentTag[]
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
 
   @@unique([name, workspaceId])
 }
 
 model Folder {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   name        String
   workspaceId String
   parentId    String?
-  createdAt   DateTime @default(now())
-
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime   @default(now())
+  documents   Document[]
   parent      Folder?    @relation("FolderToFolder", fields: [parentId], references: [id])
   subfolders  Folder[]   @relation("FolderToFolder")
-  documents   Document[]
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
 }
 
 model DocumentTag {
   documentId String
   tagId      String
-
   document   Document @relation(fields: [documentId], references: [id])
   tag        Tag      @relation(fields: [tagId], references: [id])
 
@@ -103,15 +90,14 @@ model DocumentTag {
 }
 
 model Comment {
-  id          String   @id @default(uuid())
-  content     String
-  documentId  String
-  authorId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  document    Document @relation(fields: [documentId], references: [id])
-  author      User     @relation(fields: [authorId], references: [id])
+  id         String   @id @default(uuid())
+  content    String
+  documentId String
+  authorId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  author     User     @relation(fields: [authorId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
 }
 
 model Notification {
@@ -120,7 +106,11 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id])
 }
 
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}

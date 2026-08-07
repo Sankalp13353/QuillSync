@@ -192,7 +192,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 // Update a document (e.g. content, title, or tags)
 router.patch('/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { title, content, tagIds } = req.body;
+  const { title, content, tagIds, folderId } = req.body;
   const userId = req.dbUser.id;
 
   try {
@@ -223,6 +223,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (content !== undefined) updateData.content = content;
+    if (folderId !== undefined) updateData.folderId = folderId;
     if (tagIds !== undefined) {
       updateData.tags = {
         deleteMany: {},
