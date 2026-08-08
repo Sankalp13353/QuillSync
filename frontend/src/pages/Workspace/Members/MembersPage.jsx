@@ -140,8 +140,7 @@ export default function MembersPage() {
                       <select 
                         value={member.role} 
                         onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                        className="role-select"
-                        style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '14px', outline: 'none' }}
+                        className="member-role-select"
                       >
                         <option value="VIEWER">Viewer</option>
                         <option value="COMMENTOR">Commentor</option>

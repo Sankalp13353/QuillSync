@@ -218,17 +218,26 @@ router.patch('/:id/members/:userId', requireAuth, async (req, res) => {
   if (!role) return res.status(400).json({ error: 'Role is required' });
 
   try {
+    console.log(`[PATCH /workspaces/${id}/members/${userId}] Updating role to ${role} by ${req.dbUser.id}`);
     const isOwner = await hasWorkspaceRole(req.dbUser.id, id, ['OWNER']);
-    if (!isOwner) return res.status(403).json({ error: 'Only owners can update member roles' });
+    if (!isOwner) {
+      console.log('Not owner');
+      return res.status(403).json({ error: 'Only owners can update member roles' });
+    }
 
-    if (userId === req.dbUser.id) return res.status(400).json({ error: 'Cannot change your own role this way' });
+    if (userId === req.dbUser.id) {
+      console.log('Cannot change own role');
+      return res.status(400).json({ error: 'Cannot change your own role this way' });
+    }
 
     const updated = await prisma.workspaceMember.update({
       where: { userId_workspaceId: { userId, workspaceId: id } },
       data: { role }
     });
+    console.log('Update success');
     res.json(updated);
   } catch (err) {
+    console.error('Error updating role:', err);
     res.status(500).json({ error: err.message });
   }
 });
