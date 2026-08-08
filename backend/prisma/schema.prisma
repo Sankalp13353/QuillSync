@@ -6,6 +6,19 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  OWNER
+  EDITOR
+  COMMENTOR
+  VIEWER
+}
+
+enum DraftStatus {
+  OPEN
+  MERGED
+  CLOSED
+}
+
 model User {
   id              String            @id @default(uuid())
   supabaseId      String            @unique
@@ -16,6 +29,8 @@ model User {
   notifications   Notification[]
   ownedWorkspaces Workspace[]
   memberships     WorkspaceMember[]
+  documentVersions DocumentVersion[]
+  documentDrafts  DocumentDraft[]
 }
 
 model Workspace {
@@ -55,6 +70,33 @@ model Document {
   folder      Folder?       @relation(fields: [folderId], references: [id])
   workspace   Workspace     @relation(fields: [workspaceId], references: [id])
   tags        DocumentTag[]
+  versions    DocumentVersion[]
+  drafts      DocumentDraft[]
+}
+
+model DocumentVersion {
+  id         String   @id @default(uuid())
+  documentId String
+  version    Int
+  content    Json
+  createdBy  String
+  createdAt  DateTime @default(now())
+
+  document   Document @relation(fields: [documentId], references: [id])
+  author     User     @relation(fields: [createdBy], references: [id])
+}
+
+model DocumentDraft {
+  id         String      @id @default(uuid())
+  documentId String
+  authorId   String
+  content    Json
+  status     DraftStatus @default(OPEN)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  document   Document @relation(fields: [documentId], references: [id])
+  author     User     @relation(fields: [authorId], references: [id])
 }
 
 model Tag {
@@ -107,11 +149,4 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
-}
-
-enum Role {
-  OWNER
-  EDITOR
-  COMMENTOR
-  VIEWER
 }
