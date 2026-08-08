@@ -64,6 +64,13 @@ router.post('/', requireAuth, async (req, res) => {
         }
       });
 
+      await tx.folder.create({
+        data: {
+          name: 'General',
+          workspaceId: ws.id
+        }
+      });
+
       return ws;
     });
 

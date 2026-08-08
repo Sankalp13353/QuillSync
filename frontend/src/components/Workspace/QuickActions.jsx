@@ -83,7 +83,7 @@ const QuickActions = ({ workspace, folders, onFolderCreated, onDocumentCreated }
       title: "Create New Document",
       fields: [
         { name: "title", label: "Document Title", placeholder: "e.g., Project Proposal", autoFocus: true },
-        { name: "folderId", label: "Folder", type: "folder-select", options: folders || [], initialValue: folderId || "" }
+        { name: "folderId", label: "Folder", type: "folder-select", options: folders || [], initialValue: folderId || (folders && folders.length > 0 ? folders[0].id : "NEW_FOLDER") }
       ],
       onSubmit: handleCreateDocument
     });

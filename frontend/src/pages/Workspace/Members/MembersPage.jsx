@@ -25,6 +25,9 @@ export default function MembersPage() {
   // Options Menu State
   const [openMenuId, setOpenMenuId] = useState(null);
 
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', userId: null });
+
   const fetchWorkspace = () => {
     setLoading(true);
     api.get(`/workspaces/${id}`)
@@ -71,25 +74,33 @@ export default function MembersPage() {
   };
 
   const handleRemoveMember = async (userId) => {
-    if (!window.confirm("Are you sure you want to remove this member?")) return;
+    setOpenMenuId(null);
+    setConfirmModal({ isOpen: true, type: 'remove', userId });
+  };
+
+  const confirmRemoveMember = async () => {
     try {
-      await api.delete(`/workspaces/${id}/members/${userId}`);
+      await api.delete(`/workspaces/${id}/members/${confirmModal.userId}`);
       fetchWorkspace();
     } catch (err) {
       alert(err.response?.data?.error || "Failed to remove member");
     }
-    setOpenMenuId(null);
+    setConfirmModal({ isOpen: false, type: '', userId: null });
   };
 
   const handleTransferOwnership = async (userId) => {
-    if (!window.confirm("Are you sure you want to transfer ownership? You will be demoted to EDITOR.")) return;
+    setOpenMenuId(null);
+    setConfirmModal({ isOpen: true, type: 'transfer', userId });
+  };
+
+  const confirmTransferOwnership = async () => {
     try {
-      await api.post(`/workspaces/${id}/transfer-ownership`, { targetUserId: userId });
+      await api.post(`/workspaces/${id}/transfer-ownership`, { targetUserId: confirmModal.userId });
       fetchWorkspace();
     } catch (err) {
       alert(err.response?.data?.error || "Failed to transfer ownership");
     }
-    setOpenMenuId(null);
+    setConfirmModal({ isOpen: false, type: '', userId: null });
   };
 
   return (
@@ -162,13 +173,11 @@ export default function MembersPage() {
                         </button>
                         
                         {openMenuId === member.id && (
-                          <div className="member-options-menu" style={{
-                            position: 'absolute', right: 0, top: '24px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', zIndex: 10, minWidth: '200px'
-                          }}>
-                            <button onClick={() => handleTransferOwnership(member.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '12px 16px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', color: '#0f172a' }}>
+                          <div className="member-options-menu">
+                            <button onClick={() => handleTransferOwnership(member.id)} className="member-options-item">
                               <FiShield /> Transfer Ownership
                             </button>
-                            <button onClick={() => handleRemoveMember(member.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '12px 16px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer', color: '#ef4444' }}>
+                            <button onClick={() => handleRemoveMember(member.id)} className="member-options-item danger">
                               <FiTrash2 /> Remove from workspace
                             </button>
                           </div>
@@ -223,6 +232,36 @@ export default function MembersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal.isOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content form-modal" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>{confirmModal.type === 'transfer' ? 'Transfer Ownership' : 'Remove Member'}</h2>
+              <button className="close-btn" onClick={() => setConfirmModal({ isOpen: false, type: '', userId: null })}>×</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ color: '#cbd5e1', lineHeight: '1.5' }}>
+                {confirmModal.type === 'transfer' 
+                  ? "Are you sure you want to transfer ownership? You will be demoted to EDITOR."
+                  : "Are you sure you want to remove this member from the workspace?"}
+              </p>
+            </div>
+            <div className="modal-footer" style={{ marginTop: '24px' }}>
+              <button type="button" className="btn-cancel" onClick={() => setConfirmModal({ isOpen: false, type: '', userId: null })}>Cancel</button>
+              <button 
+                type="button"
+                className="btn-confirm" 
+                style={confirmModal.type === 'remove' ? { background: '#ef4444' } : {}}
+                onClick={confirmModal.type === 'transfer' ? confirmTransferOwnership : confirmRemoveMember}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}

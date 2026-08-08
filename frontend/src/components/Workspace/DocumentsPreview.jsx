@@ -18,8 +18,8 @@ const DocumentsPreview = ({ workspace, documents, folders = [], folderId, breadc
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const openDocument = (documentId) => {
-    navigate(`/workspace/${workspaceId}/document/${documentId}`);
+  const openDocument = (document) => {
+    navigate(`/workspace/${workspaceId}/document/${document.id}`, { state: { document } });
   };
 
   const openFolder = (fId) => {
@@ -130,11 +130,11 @@ const DocumentsPreview = ({ workspace, documents, folders = [], folderId, breadc
           </div>
         ))}
 
-        {folderId && documents.map((document) => (
+        {documents.map((document) => (
           <div
             className="document-card"
             key={document.id}
-            onClick={() => openDocument(document.id)}
+            onClick={() => openDocument(document)}
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
           >
             <div className="document-left">

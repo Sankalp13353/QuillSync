@@ -47,7 +47,7 @@ const FormModal = ({ isOpen, onClose, onSubmit, title, fields = [] }) => {
                       onChange={(e) => handleChange(e, field.name)}
                       style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', outline: 'none', color: '#0f172a', backgroundColor: '#fff', cursor: 'pointer' }}
                     >
-                      <option value="">Workspace Root (No Folder)</option>
+
                       {field.options && field.options.map(opt => (
                         <option key={opt.id} value={opt.id}>{opt.name}</option>
                       ))}

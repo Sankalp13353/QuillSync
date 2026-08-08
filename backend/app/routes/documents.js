@@ -6,20 +6,37 @@ const { requireAuth, hasWorkspaceRole } = require('../middleware/auth');
 // GET /api/documents - Get all documents
 router.get('/', requireAuth, async (req, res) => {
   try {
+    const { workspaceId, folderId, all } = req.query;
+
+    let where = {
+      workspace: {
+        members: { some: { userId: req.dbUser.id } }
+      }
+    };
+
+    if (workspaceId) {
+      where.workspaceId = workspaceId;
+    }
+
+    if (folderId !== undefined) {
+      if (folderId === 'null' || folderId === '') {
+        where.folderId = null;
+      } else {
+        where.folderId = folderId;
+      }
+    } else if (workspaceId && all !== 'true') {
+      where.folderId = null; // Default to root documents if workspaceId is given but folderId is not
+    }
+
     const docs = await prisma.document.findMany({
-      where: {
-        workspace: {
-          members: { some: { userId: req.dbUser.id } }
-        }
-      },
+      where,
       include: {
         author: { select: { id: true, email: true } },
         workspace: { select: { id: true, name: true } },
         folder: { select: { id: true, name: true } },
         tags: { include: { tag: true } }
       },
-      orderBy: { updatedAt: 'desc' },
-      take: 10
+      orderBy: { updatedAt: 'desc' }
     });
     res.json(docs);
   } catch (err) {
@@ -30,7 +47,7 @@ router.get('/', requireAuth, async (req, res) => {
 // POST /api/documents - Create a new document in a workspace
 router.post('/', requireAuth, async (req, res) => {
   const { title, workspaceId, folderId, tagIds } = req.body;
-  if (!title || !workspaceId) return res.status(400).json({ error: 'Title and workspaceId are required' });
+  if (!title || !workspaceId || !folderId) return res.status(400).json({ error: 'Title, workspaceId, and folderId are required. Documents must belong to a folder.' });
 
   try {
     const canCreate = await hasWorkspaceRole(req.dbUser.id, workspaceId, ['OWNER', 'EDITOR']);
@@ -40,7 +57,7 @@ router.post('/', requireAuth, async (req, res) => {
       data: {
         title,
         workspaceId,
-        folderId: folderId || null,
+        folderId: folderId,
         authorId: req.dbUser.id,
         content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] },
         ...(tagIds && tagIds.length > 0 && { tags: { create: tagIds.map(tagId => ({ tagId })) } })
