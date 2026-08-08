@@ -11,12 +11,16 @@ import {
 } from "react-icons/fi";
 import FormModal from "./FormModal";
 
-const QuickActions = ({ folders, onFolderCreated, onDocumentCreated }) => {
+const QuickActions = ({ workspace, folders, onFolderCreated, onDocumentCreated }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const folderId = searchParams.get("folderId");
   const [modalConfig, setModalConfig] = useState(null);
+  
+  const myRole = workspace?.myRole || 'VIEWER';
+  const canCreate = myRole === 'OWNER' || myRole === 'EDITOR';
+  const isOwner = myRole === 'OWNER';
 
   const handleCreateFolder = async (formData) => {
     const name = formData.name;
@@ -79,7 +83,7 @@ const QuickActions = ({ folders, onFolderCreated, onDocumentCreated }) => {
       title: "Create New Document",
       fields: [
         { name: "title", label: "Document Title", placeholder: "e.g., Project Proposal", autoFocus: true },
-        { name: "folderId", label: "Folder", type: "folder-select", options: folders || [], initialValue: folderId || "" }
+        { name: "folderId", label: "Folder", type: "folder-select", options: folders || [], initialValue: folderId || (folders && folders.length > 0 ? folders[0].id : "NEW_FOLDER") }
       ],
       onSubmit: handleCreateDocument
     });
@@ -128,100 +132,51 @@ const QuickActions = ({ folders, onFolderCreated, onDocumentCreated }) => {
 
       <div className="quick-actions-grid">
 
-        <button
-          className="quick-action-card"
-          onClick={openNewDocModal}
-        >
+        {canCreate && (
+          <>
+            <button className="quick-action-card" onClick={openNewDocModal}>
+              <div className="quick-action-icon"><FiFilePlus /></div>
+              <div className="quick-action-info">
+                <h3>New Document</h3><p>Create a new document</p>
+              </div>
+              <FiArrowRight className="quick-action-arrow" />
+            </button>
 
-          <div className="quick-action-icon">
-            <FiFilePlus />
-          </div>
+            <button className="quick-action-card" onClick={openNewFolderModal}>
+              <div className="quick-action-icon"><FiFolderPlus /></div>
+              <div className="quick-action-info">
+                <h3>New Folder</h3><p>Organize documents</p>
+              </div>
+              <FiArrowRight className="quick-action-arrow" />
+            </button>
 
+            <button className="quick-action-card" onClick={openNewLabelModal}>
+              <div className="quick-action-icon"><FiTag /></div>
+              <div className="quick-action-info">
+                <h3>New Label</h3><p>Create a custom tag</p>
+              </div>
+              <FiArrowRight className="quick-action-arrow" />
+            </button>
+          </>
+        )}
+
+        <button className="quick-action-card" onClick={() => navigate(`/workspace/${id}/members`)}>
+          <div className="quick-action-icon"><FiUserPlus /></div>
           <div className="quick-action-info">
-
-            <h3>New Document</h3>
-
-            <p>Create a new document</p>
-
-          </div>
-
-          <FiArrowRight className="quick-action-arrow" />
-        </button>
-
-        <button
-          className="quick-action-card"
-          onClick={openNewFolderModal}
-        >
-          <div className="quick-action-icon">
-            <FiFolderPlus />
-          </div>
-          <div className="quick-action-info">
-            <h3>New Folder</h3>
-            <p>Organize documents</p>
-          </div>
-          <FiArrowRight className="quick-action-arrow" />
-        </button>
-
-        <button
-          className="quick-action-card"
-          onClick={openNewLabelModal}
-        >
-          <div className="quick-action-icon">
-            <FiTag />
-          </div>
-          <div className="quick-action-info">
-            <h3>New Label</h3>
-            <p>Create a custom tag</p>
+            <h3>{isOwner ? 'Invite Member' : 'Members'}</h3><p>Manage workspace members</p>
           </div>
           <FiArrowRight className="quick-action-arrow" />
         </button>
 
-        <button
-          className="quick-action-card"
-          onClick={() =>
-            navigate(`/workspace/${id}/members`)
-          }
-        >
-
-          <div className="quick-action-icon">
-            <FiUserPlus />
-          </div>
-
-          <div className="quick-action-info">
-
-            <h3>Invite Member</h3>
-
-            <p>Manage workspace members</p>
-
-          </div>
-
-          <FiArrowRight className="quick-action-arrow" />
-
-        </button>
-
-        <button
-          className="quick-action-card"
-          onClick={() =>
-            navigate(`/workspace/${id}/settings`)
-          }
-        >
-
-          <div className="quick-action-icon">
-            <FiSettings />
-          </div>
-
-          <div className="quick-action-info">
-
-            <h3>Workspace Settings</h3>
-
-            <p>Manage workspace</p>
-
-          </div>
-
-          <FiArrowRight className="quick-action-arrow" />
-
-        </button>
-
+        {isOwner && (
+          <button className="quick-action-card" onClick={() => navigate(`/workspace/${id}/settings`)}>
+            <div className="quick-action-icon"><FiSettings /></div>
+            <div className="quick-action-info">
+              <h3>Workspace Settings</h3><p>Manage workspace</p>
+            </div>
+            <FiArrowRight className="quick-action-arrow" />
+          </button>
+        )}
       </div>
 
     </section>

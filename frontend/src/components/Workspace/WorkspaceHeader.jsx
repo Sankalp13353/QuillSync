@@ -77,6 +77,10 @@ const WorkspaceHeader = ({ workspace, folderId, folders, onDocumentCreated, onFo
     });
   };
 
+  const myRole = workspace?.myRole || 'VIEWER';
+  const canCreate = myRole === 'OWNER' || myRole === 'EDITOR';
+  const canManageMembers = myRole === 'OWNER';
+
   return (
     <section className="workspace-header">
       <FormModal 
@@ -95,20 +99,24 @@ const WorkspaceHeader = ({ workspace, folderId, folders, onDocumentCreated, onFo
       </div>
 
       <div className="workspace-header-right">
-        <button className="secondary-btn" onClick={handleInviteMember}>
+        <button className="secondary-btn" onClick={() => navigate(`/workspace/${workspace.id}/members`)}>
           <FiUserPlus />
-          Invite Member
+          {canManageMembers ? 'Manage Members' : 'Members'}
         </button>
 
-        <button className="secondary-btn" onClick={openNewFolderModal}>
-          <FiPlus />
-          New Folder
-        </button>
+        {canCreate && (
+          <button className="secondary-btn" onClick={openNewFolderModal}>
+            <FiPlus />
+            New Folder
+          </button>
+        )}
 
-        <button className="primary-btn" onClick={openNewDocModal}>
-          <FiPlus />
-          New Document
-        </button>
+        {canCreate && (
+          <button className="primary-btn" onClick={openNewDocModal}>
+            <FiPlus />
+            New Document
+          </button>
+        )}
       </div>
     </section>
   );

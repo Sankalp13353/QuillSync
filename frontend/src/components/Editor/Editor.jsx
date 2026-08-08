@@ -79,12 +79,12 @@ const MenuBar = ({ editor }) => {
   );
 };
 
-export default function Editor({ initialContent, onSave }) {
+export default function Editor({ initialContent, onSave, readOnly = false }) {
   const editor = useEditor({
     extensions: [StarterKit],
     content: initialContent || '<p>Start typing here...</p>',
+    editable: !readOnly,
     onUpdate: ({ editor }) => {
-      // Pass the JSON content up to the parent to save
       debouncedSave(editor.getJSON());
     },
   });
@@ -108,7 +108,7 @@ export default function Editor({ initialContent, onSave }) {
 
   return (
     <div className="editor-container">
-      <MenuBar editor={editor} />
+      {!readOnly && <MenuBar editor={editor} />}
       <div className="editor-content-wrapper">
         <EditorContent editor={editor} />
       </div>

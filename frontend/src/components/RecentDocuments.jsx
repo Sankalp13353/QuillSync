@@ -45,7 +45,7 @@ const RecentDocuments = ({ documents }) => {
             <div
               className="document-item"
               key={document.id}
-              onClick={() => navigate(`/workspace/${document.workspaceId}/document/${document.id}`)}
+              onClick={() => openDocument(document.workspaceId, document.id)}
               style={{ cursor: 'pointer', padding: '16px', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
               <div className="document-left" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -83,14 +83,6 @@ const RecentDocuments = ({ documents }) => {
                   </p>
                 </div>
               </div>
-
-              <button
-                className="workspace-menu-button"
-                onClick={() => openDocument(document.workspaceId, document.id)}
-                style={{ cursor: "pointer" }}
-              >
-                Open
-              </button>
             </div>
           ))
         )}

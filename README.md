@@ -2,75 +2,53 @@
 
 Collaborative knowledge & documentation platform.
 
----
-
 ## Stack
 
-- **Frontend** — React 19, Vite, Tailwind CSS v4, React Router v7, Supabase, Axios
-- **Backend** — Node.js, Express 5, Supabase, Prisma (PostgreSQL)
+- **Frontend** — React 19, Vite, React Router v7, Supabase, Axios
+- **Backend** — Node.js, Express 5, Prisma (PostgreSQL), Supabase Auth
 
----
+## Features
 
-## Project Features & Integrations
-
-- **Auth System** — Supabase authentication with auto-sync fallback to Prisma database.
-- **Workspaces** — Group documents and collaborate. Complete with list, details, and creation API endpoints.
-- **Documents** — Create and list documents scoped to workspaces.
-
----
+- Supabase auth with Prisma user sync
+- Workspaces — create, manage members, settings
+- Documents — scoped to workspaces, clickable from dashboard
+- Comments/Chat — per-document real-time style chat panel
+- Notifications — bell dropdown with mark as read
+- Unified search across all pages
 
 ## Project Structure
 
 ```
 QuillSync/
-├── frontend/
-│   └── src/
-│       ├── components/     # UI components (Header, Sidebar, Workspace components)
-│       ├── context/        # AuthContext
-│       ├── pages/          # Dashboard, Workspace Pages, Auth Pages
-│       └── utils/          # supabase.js, api.js
+├── frontend/src/
+│   ├── components/   # Header, Sidebar, modals
+│   ├── context/      # AuthContext
+│   ├── pages/        # Dashboard, Workspaces, Document, Auth
+│   └── utils/        # api.js, supabase.js
 └── backend/
-    ├── app/                # Express middleware & routes (auth, workspaces, documents)
-    ├── prisma/             # Prisma schema, migrations, and seed data
+    ├── app/
+    │   ├── middleware/   # auth.js (JWT verify + Prisma user sync)
+    │   └── routes/       # workspaces, documents, comments, notifications, users
+    ├── prisma/           # schema, migrations, seed
     └── server.js
 ```
 
----
+## Setup
 
-## Getting Started
+Requires Docker running (starts PostgreSQL automatically).
 
-### Database Setup (PostgreSQL)
-Ensure you have Docker running (it starts the PostgreSQL DB automatically), then set up Prisma:
 ```bash
-cd backend
-npx prisma migrate dev
-npm run seed
+# From root
+./start-dev.sh        # macOS/Linux
+start-dev.bat         # Windows
 ```
 
-### Frontend
+Or manually:
+
 ```bash
-cd frontend
-npm install
-npm run dev
+cd backend && npm install && npx prisma migrate dev && npm run seed && npm run dev
+cd frontend && npm install && npm run dev
 ```
-
-### Backend
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-### Both (from root)
-```bash
-# macOS/Linux
-./start-dev.sh
-
-# Windows
-start-dev.bat
-```
-
----
 
 ## Environment Variables
 
@@ -82,10 +60,9 @@ VITE_SUPABASE_ANON_KEY=
 
 **backend/.env**
 ```
-PORT=5000
+PORT=5001
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 JWT_SECRET=
-DATABASE_URL="postgresql://quillsync:quillsync@localhost:5432/quillsync"
+DATABASE_URL=postgresql://quillsync:quillsync@localhost:5432/quillsync
 ```
-

@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, hasWorkspaceRole } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
 
 // GET /api/workspaces - List workspaces user is a member of
@@ -61,6 +61,13 @@ router.post('/', requireAuth, async (req, res) => {
           userId: req.dbUser.id,
           workspaceId: ws.id,
           role: 'OWNER'
+        }
+      });
+
+      await tx.folder.create({
+        data: {
+          name: 'General',
+          workspaceId: ws.id
         }
       });
 
@@ -183,6 +190,120 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 
+
+// POST /api/workspaces/:id/members - Invite a member by email
+router.post('/:id/members', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { email, role } = req.body;
+  if (!email || !role) return res.status(400).json({ error: 'Email and role are required' });
+
+  try {
+    const isOwner = await hasWorkspaceRole(req.dbUser.id, id, ['OWNER']);
+    if (!isOwner) return res.status(403).json({ error: 'Only owners can invite members' });
+
+    const userToInvite = await prisma.user.findUnique({ where: { email } });
+    if (!userToInvite) return res.status(404).json({ error: 'User with this email not found' });
+
+    const existingMember = await prisma.workspaceMember.findUnique({
+      where: { userId_workspaceId: { userId: userToInvite.id, workspaceId: id } }
+    });
+    if (existingMember) return res.status(400).json({ error: 'User is already a member' });
+
+    const newMember = await prisma.workspaceMember.create({
+      data: { userId: userToInvite.id, workspaceId: id, role }
+    });
+    res.json(newMember);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/workspaces/:id/members/:userId - Update member role
+router.patch('/:id/members/:userId', requireAuth, async (req, res) => {
+  const { id, userId } = req.params;
+  const { role } = req.body;
+  if (!role) return res.status(400).json({ error: 'Role is required' });
+
+  try {
+    console.log(`[PATCH /workspaces/${id}/members/${userId}] Updating role to ${role} by ${req.dbUser.id}`);
+    const isOwner = await hasWorkspaceRole(req.dbUser.id, id, ['OWNER']);
+    if (!isOwner) {
+      console.log('Not owner');
+      return res.status(403).json({ error: 'Only owners can update member roles' });
+    }
+
+    if (userId === req.dbUser.id) {
+      console.log('Cannot change own role');
+      return res.status(400).json({ error: 'Cannot change your own role this way' });
+    }
+
+    const updated = await prisma.workspaceMember.update({
+      where: { userId_workspaceId: { userId, workspaceId: id } },
+      data: { role }
+    });
+    console.log('Update success');
+    res.json(updated);
+  } catch (err) {
+    console.error('Error updating role:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/workspaces/:id/members/:userId - Remove member
+router.delete('/:id/members/:userId', requireAuth, async (req, res) => {
+  const { id, userId } = req.params;
+  try {
+    const isOwner = await hasWorkspaceRole(req.dbUser.id, id, ['OWNER']);
+    if (!isOwner) return res.status(403).json({ error: 'Only owners can remove members' });
+
+    if (userId === req.dbUser.id) return res.status(400).json({ error: 'Cannot remove yourself' });
+
+    await prisma.workspaceMember.delete({
+      where: { userId_workspaceId: { userId, workspaceId: id } }
+    });
+    res.json({ message: 'Member removed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/workspaces/:id/transfer-ownership - Transfer ownership
+router.post('/:id/transfer-ownership', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { targetUserId } = req.body;
+  if (!targetUserId) return res.status(400).json({ error: 'Target user ID is required' });
+
+  try {
+    const isOwner = await hasWorkspaceRole(req.dbUser.id, id, ['OWNER']);
+    if (!isOwner) return res.status(403).json({ error: 'Only owners can transfer ownership' });
+
+    if (targetUserId === req.dbUser.id) return res.status(400).json({ error: 'Cannot transfer ownership to yourself' });
+
+    const targetMember = await prisma.workspaceMember.findUnique({
+      where: { userId_workspaceId: { userId: targetUserId, workspaceId: id } }
+    });
+    if (!targetMember) return res.status(404).json({ error: 'Target user is not a member of this workspace' });
+
+    await prisma.$transaction([
+      prisma.workspace.update({
+        where: { id },
+        data: { ownerId: targetUserId }
+      }),
+      prisma.workspaceMember.update({
+        where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId: id } },
+        data: { role: 'EDITOR' }
+      }),
+      prisma.workspaceMember.update({
+        where: { userId_workspaceId: { userId: targetUserId, workspaceId: id } },
+        data: { role: 'OWNER' }
+      })
+    ]);
+
+    res.json({ message: 'Ownership transferred successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
 

@@ -8,7 +8,13 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({ origin: 'http://localhost:5174', credentials: true }));
-app.use(express.json());
+
+app.use(express.json())
+
+app.use((req, res, next) => {
+  console.log(req.method, req.originalUrl);
+  next();
+});
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
@@ -19,6 +25,7 @@ app.use('/api/notifications', require('./app/routes/notifications'));
 app.use('/api/comments', require('./app/routes/comments'));
 app.use('/api/folders', require('./app/routes/folders'));
 app.use('/api/tags', require('./app/routes/tags'));
+app.use('/api/drafts', require('./app/routes/drafts'));
+app.use('/api/versions', require('./app/routes/versions'));
 
 app.listen(port, () => console.log(`🚀 Server running on http://localhost:${port}`));
-

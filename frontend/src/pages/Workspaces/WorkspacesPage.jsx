@@ -61,10 +61,10 @@ export default function WorkspacesPage() {
     e.preventDefault();
     if (!newDocTitle.trim()) return;
     try {
-      await api.post("/documents", { title: newDocTitle.trim(), workspaceId: id });
+      const res = await api.post("/documents", { title: newDocTitle.trim(), workspaceId: id });
       setNewDocTitle("");
       setCreatingDoc(false);
-      fetchWorkspaceDetail();
+      navigate(`/workspace/${id}/document/${res.data.id}`, { state: { document: res.data } });
     } catch (err) {
       alert(err.response?.data?.error || "Failed to create document");
     }
