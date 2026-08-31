@@ -22,7 +22,13 @@ const requireAuth = async (req, res, next) => {
     });
 
     if (!dbUser) {
-      return res.status(403).json({ error: 'Account not registered on QuillSync. Please sign up first.' });
+      // Only auto-provision users who have a confirmed email (e.g. Google OAuth)
+      if (!user.email_confirmed_at) {
+        return res.status(403).json({ error: 'Please confirm your email before accessing QuillSync.' });
+      }
+      dbUser = await prisma.user.create({
+        data: { supabaseId: user.id, email: user.email }
+      });
     }
 
     req.user = user;

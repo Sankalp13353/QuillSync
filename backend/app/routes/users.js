@@ -15,12 +15,21 @@ router.post('/register', async (req, res) => {
     });
     if (error) throw error;
 
-    await prisma.user.create({
-      data: { supabaseId: data.user.id, email: data.user.email }
-    });
+    // Only create Prisma user if email is already confirmed (email confirmation disabled in Supabase)
+    // If confirmation is required, Prisma user is created on first login after confirmation
+    if (data.user?.email_confirmed_at) {
+      const existing = await prisma.user.findUnique({ where: { supabaseId: data.user.id } });
+      if (!existing) {
+        await prisma.user.create({
+          data: { supabaseId: data.user.id, email: data.user.email }
+        });
+      }
+    }
 
     res.status(201).json({
-      message: 'Registration successful! Please check your email to confirm your account.',
+      message: data.session
+        ? 'Registration successful!'
+        : 'Registration successful! Please check your email to confirm your account before logging in.',
       user: { id: data.user?.id, email: data.user?.email, fullName: data.user?.user_metadata?.full_name },
       session: data.session
     });
@@ -37,6 +46,20 @@ router.post('/login', async (req, res) => {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+
+    if (!data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      return res.status(403).json({ error: 'Please confirm your email before logging in.' });
+    }
+
+    // Create Prisma user on first login if not exists (handles email-confirmed registrations)
+    let dbUser = await prisma.user.findUnique({ where: { supabaseId: data.user.id } });
+    if (!dbUser) {
+      dbUser = await prisma.user.create({
+        data: { supabaseId: data.user.id, email: data.user.email }
+      });
+    }
+
     res.status(200).json({
       message: 'Login successful',
       user: { id: data.user.id, email: data.user.email, fullName: data.user.user_metadata?.full_name },
