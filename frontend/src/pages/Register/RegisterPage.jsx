@@ -4,6 +4,7 @@ import { FiFeather, FiMail, FiLock, FiUser, FiArrowRight, FiCheck } from 'react-
 import { FcGoogle } from 'react-icons/fc';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 import './Register.css';
 
 export default function RegisterPage() {
@@ -53,21 +54,16 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: fullName } }
-      });
-      if (error) throw error;
+      const { data } = await api.post('/auth/register', { email, password, fullName });
 
-      // If email confirmation is disabled, user is logged in immediately
       if (data.session) {
+        await supabase.auth.setSession(data.session);
         navigate('/dashboard');
       } else {
         setSuccess('Account created! Please check your email to confirm your account before logging in.');
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
     }

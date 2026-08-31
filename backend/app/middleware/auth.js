@@ -22,12 +22,7 @@ const requireAuth = async (req, res, next) => {
     });
 
     if (!dbUser) {
-      dbUser = await prisma.user.create({
-        data: {
-          supabaseId: user.id,
-          email: user.email
-        }
-      });
+      return res.status(403).json({ error: 'Account not registered on QuillSync. Please sign up first.' });
     }
 
     req.user = user;
