@@ -17,18 +17,37 @@ const requireAuth = async (req, res, next) => {
   }
 
   try {
-    let dbUser = await prisma.user.findUnique({
-      where: { supabaseId: user.id }
-    });
+    // Block unconfirmed email/password users
+    if (user.app_metadata?.provider === 'email' && !user.email_confirmed_at) {
+      return res.status(403).json({ error: 'Please verify your email before accessing QuillSync.' });
+    }
+
+    const email = user.email?.trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ error: 'Authenticated user does not have an email address.' });
+    }
+
+    let dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id } });
 
     if (!dbUser) {
-      // Only auto-provision users who have a confirmed email (e.g. Google OAuth)
-      if (!user.email_confirmed_at) {
-        return res.status(403).json({ error: 'Please confirm your email before accessing QuillSync.' });
+      // Check if this email already belongs to a different Prisma user
+      const existingByEmail = await prisma.user.findUnique({ where: { email } });
+      if (existingByEmail) {
+        return res.status(409).json({ error: 'An account already exists with this email. Please use your original sign-in method.' });
       }
-      dbUser = await prisma.user.create({
-        data: { supabaseId: user.id, email: user.email }
-      });
+
+      try {
+        dbUser = await prisma.user.create({ data: { supabaseId: user.id, email } });
+      } catch (createErr) {
+        // Handle race condition: another request created the user between our check and create
+        if (createErr.code === 'P2002') {
+          dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id } })
+            || await prisma.user.findUnique({ where: { email } });
+          if (!dbUser) return res.status(500).json({ error: 'Database error resolving user session' });
+        } else {
+          throw createErr;
+        }
+      }
     }
 
     req.user = user;
@@ -48,4 +67,3 @@ const hasWorkspaceRole = async (userId, workspaceId, allowedRoles) => {
 };
 
 module.exports = { supabase, requireAuth, hasWorkspaceRole };
-
