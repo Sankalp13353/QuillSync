@@ -23,7 +23,6 @@ model User {
   id              String            @id @default(uuid())
   supabaseId      String            @unique
   email           String            @unique
-  createdAt       DateTime          @default(now())
   comments        Comment[]
   documents       Document[]
   notifications   Notification[]
@@ -82,8 +81,8 @@ model DocumentVersion {
   createdBy  String
   createdAt  DateTime @default(now())
 
-  document   Document @relation(fields: [documentId], references: [id])
-  author     User     @relation(fields: [createdBy], references: [id])
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [createdBy], references: [id], onDelete: Restrict)
 }
 
 model DocumentDraft {
@@ -95,8 +94,8 @@ model DocumentDraft {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
-  document   Document @relation(fields: [documentId], references: [id])
-  author     User     @relation(fields: [authorId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
 }
 
 model Tag {
@@ -117,7 +116,7 @@ model Folder {
   parentId    String?
   createdAt   DateTime   @default(now())
   documents   Document[]
-  parent      Folder?    @relation("FolderToFolder", fields: [parentId], references: [id])
+  parent      Folder?    @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Cascade)
   subfolders  Folder[]   @relation("FolderToFolder")
   workspace   Workspace  @relation(fields: [workspaceId], references: [id])
 }
@@ -125,8 +124,8 @@ model Folder {
 model DocumentTag {
   documentId String
   tagId      String
-  document   Document @relation(fields: [documentId], references: [id])
-  tag        Tag      @relation(fields: [tagId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([documentId, tagId])
 }
@@ -138,8 +137,8 @@ model Comment {
   authorId   String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  author     User     @relation(fields: [authorId], references: [id])
-  document   Document @relation(fields: [documentId], references: [id])
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
