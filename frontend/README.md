@@ -1,73 +1,77 @@
-# QuillSync - Collaborative Knowledge & Documentation Platform (Frontend)
+# QuillSync — Frontend
 
-Welcome to the frontend repository for QuillSync. This project is built using a modern React development stack, featuring single-page routing, a dark-themed premium design system, and clean components.
+React + Vite frontend for the QuillSync collaborative documentation platform.
 
----
+## Stack
 
-## 🛠 Tech Stack
+- **React 19** + Vite
+- **React Router v7**
+- **Axios** — API client with Supabase token interceptor
+- **Supabase JS** — auth session management
+- **Tiptap** — rich text document editor
+- **React Icons**
 
-- **Framework**: React.js (via Vite)
-- **Styling**: Tailwind CSS (v4 with `@tailwindcss/vite` integration)
-- **Routing**: React Router DOM (v7)
-- **HTTP Client**: Axios (ready for backend integration)
-- **Icons**: React Icons (lucide/feather set)
+## Setup
 
----
-
-## 🚀 Getting Started
-
-Follow these steps to run the project locally on your device:
-
-### 1. Install Dependencies
-Navigate to the root directory of the project in your terminal and run:
 ```bash
 npm install
-```
-
-### 2. Start the Development Server
-Run the local dev server with hot-reloading:
-```bash
-npm run dev
-```
-Once started, open your web browser and navigate to the address shown in your terminal (usually **`http://localhost:5173/`**).
-
-### 3. Build for Production
-To generate optimized production bundle assets (HTML, CSS, and JS), run:
-```bash
+npm run dev       # http://localhost:5174
 npm run build
-```
-
-### 4. Preview the Production Build
-To spin up a local server to test the generated production files, run:
-```bash
 npm run preview
 ```
 
----
-
-## 📁 Directory Structure
+## Environment Variables
 
 ```
-QuillSync/
-├── public/
-├── src/
-│   ├── assets/        # Media and static graphic assets
-│   ├── pages/         # Page layout components
-│   │   ├── LandingPage.jsx   # Landing page with dark glassmorphic header & previews
-│   │   ├── LoginPage.jsx     # Split layout login screen with validation
-│   │   └── RegisterPage.jsx  # Split layout user signup screen with checklist
-│   ├── App.css
-│   ├── App.jsx        # Routing configuration
-│   ├── index.css      # Custom Tailwind styling & global directives
-│   └── main.jsx       # React application entry point
-├── package.json       # Project dependencies & run scripts
-└── vite.config.js     # Vite bundler & Tailwind configuration
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
 ```
 
----
+## Structure
 
-## 🌐 Routes Available
+```
+src/
+├── components/
+│   ├── Workspace/        # FolderTree, DocumentsPreview, WorkspaceHeader, etc.
+│   ├── Editor/           # Tiptap editor wrapper
+│   ├── Document/         # DocumentTags
+│   ├── Header.jsx        # Global header with notifications + search
+│   ├── Sidebar.jsx
+│   └── ProtectedRoute.jsx
+├── context/
+│   └── AuthContext.jsx   # Supabase session + Prisma user sync
+├── pages/
+│   ├── Landing/
+│   ├── Login/
+│   ├── Register/
+│   ├── ForgotPassword/
+│   ├── ResetPassword/
+│   ├── Dashboard/
+│   ├── Workspaces/
+│   ├── Workspace/
+│   │   ├── Home/         # WorkspaceHome — folders, documents, quick actions
+│   │   ├── Members/      # Role management
+│   │   └── Settings/
+│   └── Document/
+│       ├── DocumentPage.jsx
+│       └── components/   # DocumentEditor, PendingDraftsPanel, VersionHistoryPanel
+└── utils/
+    ├── api.js            # Axios instance — auto-attaches Bearer token
+    └── supabase.js
+```
 
-- **Landing Page**: `/`
-- **Login Page**: `/login`
-- **Register Page**: `/register`
+## Routes
+
+| Path | Page | Protected |
+|---|---|---|
+| `/` | Landing | No |
+| `/login` | Login | No |
+| `/register` | Register | No |
+| `/forgot-password` | Forgot Password | No |
+| `/reset-password` | Reset Password | No |
+| `/dashboard` | Dashboard | Yes |
+| `/workspaces` | Workspaces list | Yes |
+| `/workspace/:id` | Workspace home | Yes |
+| `/workspace/:id/document/:docId` | Document editor | Yes |
+| `/workspace/:id/members` | Members | Yes |
+| `/workspace/:id/settings` | Settings | Yes |

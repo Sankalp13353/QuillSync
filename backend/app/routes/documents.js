@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const { requireAuth, hasWorkspaceRole } = require('../middleware/auth');
+const { validateDocumentTitle, validateContentSize, getEmailUsername } = require('../utils/validation');
 
 // GET /api/documents - Get all documents
 router.get('/', requireAuth, async (req, res) => {
@@ -40,14 +41,23 @@ router.get('/', requireAuth, async (req, res) => {
     });
     res.json(docs);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching documents:', err);
+    res.status(500).json({ error: 'Failed to fetch documents' });
   }
 });
 
 // POST /api/documents - Create a new document in a workspace
 router.post('/', requireAuth, async (req, res) => {
   const { title, workspaceId, folderId, tagIds } = req.body;
-  if (!title || !workspaceId || !folderId) return res.status(400).json({ error: 'Title, workspaceId, and folderId are required. Documents must belong to a folder.' });
+  
+  // Validate inputs
+  if (!title || !workspaceId || !folderId) {
+    return res.status(400).json({ error: 'Title, workspaceId, and folderId are required. Documents must belong to a folder.' });
+  }
+  
+  if (!validateDocumentTitle(title)) {
+    return res.status(400).json({ error: 'Title must be between 1 and 500 characters' });
+  }
 
   try {
     const canCreate = await hasWorkspaceRole(req.dbUser.id, workspaceId, ['OWNER', 'EDITOR']);
@@ -73,10 +83,11 @@ router.post('/', requireAuth, async (req, res) => {
         where: { workspaceId, NOT: { userId: req.dbUser.id } }
       });
       if (otherMembers.length > 0) {
+        const username = getEmailUsername(req.dbUser.email);
         await prisma.notification.createMany({
           data: otherMembers.map(m => ({
             userId: m.userId,
-            message: `${req.user.email.split('@')[0]} created a new document "${title}"`
+            message: `${username} created a new document "${title}"`
           }))
         });
       }
@@ -84,7 +95,8 @@ router.post('/', requireAuth, async (req, res) => {
 
     res.status(201).json(doc);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error creating document:', err);
+    res.status(500).json({ error: 'Failed to create document' });
   }
 });
 
@@ -109,7 +121,8 @@ router.get('/:id', requireAuth, async (req, res) => {
 
     if (!membership) return res.status(403).json({ error: 'Access denied' });
 
-    res.json({ ...document, myRole: membership.role });
+    const myRole = document.workspace.ownerId === req.dbUser.id ? 'OWNER' : membership.role;
+    res.json({ ...document, myRole });
   } catch (error) {
     console.error('Error fetching document:', error);
     res.status(500).json({ error: 'Failed to fetch document' });
@@ -128,7 +141,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
       where: { userId_workspaceId: { userId: req.dbUser.id, workspaceId: document.workspaceId } }
     });
 
-    if (!membership || !['OWNER', 'EDITOR'].includes(membership.role)) {
+    const myRole = document.workspace.ownerId === req.dbUser.id ? 'OWNER' : membership?.role;
+    if (!membership || !['OWNER', 'EDITOR'].includes(myRole)) {
       return res.status(403).json({ error: 'Only OWNER or EDITOR can directly save' });
     }
 

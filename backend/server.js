@@ -7,9 +7,12 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors({ origin: 'http://localhost:5174', credentials: true }));
+// CORS configuration with environment-based origin
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5174'];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 
-app.use(express.json())
+// Set request size limit to 10MB to prevent abuse
+app.use(express.json({ limit: '10mb' }));
 
 app.use((req, res, next) => {
   console.log(req.method, req.originalUrl);

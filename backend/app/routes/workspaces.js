@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { requireAuth, hasWorkspaceRole } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
+const { validateRole } = require('../utils/validation');
 
 // GET /api/workspaces - List workspaces user is a member of
 router.get('/', requireAuth, async (req, res) => {
@@ -76,7 +77,8 @@ router.post('/', requireAuth, async (req, res) => {
 
     res.status(201).json(newWorkspace);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error creating workspace:', err);
+    res.status(500).json({ error: 'Failed to create workspace' });
   }
 });
 
@@ -163,7 +165,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
     const updated = await prisma.workspace.update({ where: { id }, data: { name, description } });
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching workspace:', err);
+    res.status(500).json({ error: 'Failed to fetch workspace' });
   }
 });
 
@@ -178,6 +181,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
     await prisma.$transaction([
       prisma.documentTag.deleteMany({ where: { document: { workspaceId: id } } }),
       prisma.comment.deleteMany({ where: { document: { workspaceId: id } } }),
+      prisma.documentVersion.deleteMany({ where: { document: { workspaceId: id } } }),
+      prisma.documentDraft.deleteMany({ where: { document: { workspaceId: id } } }),
       prisma.document.deleteMany({ where: { workspaceId: id } }),
       prisma.tag.deleteMany({ where: { workspaceId: id } }),
       prisma.workspaceMember.deleteMany({ where: { workspaceId: id } }),
@@ -185,7 +190,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
     ]);
     res.json({ message: 'Workspace deleted' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error updating workspace:', err);
+    res.status(500).json({ error: 'Failed to update workspace' });
   }
 });
 
@@ -214,7 +220,8 @@ router.post('/:id/members', requireAuth, async (req, res) => {
     });
     res.json(newMember);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error adding member:', err);
+    res.status(500).json({ error: 'Failed to add member to workspace' });
   }
 });
 
@@ -222,7 +229,12 @@ router.post('/:id/members', requireAuth, async (req, res) => {
 router.patch('/:id/members/:userId', requireAuth, async (req, res) => {
   const { id, userId } = req.params;
   const { role } = req.body;
+  
   if (!role) return res.status(400).json({ error: 'Role is required' });
+  
+  if (!validateRole(role)) {
+    return res.status(400).json({ error: 'Invalid role. Must be one of: OWNER, EDITOR, COMMENTOR, VIEWER' });
+  }
 
   try {
     console.log(`[PATCH /workspaces/${id}/members/${userId}] Updating role to ${role} by ${req.dbUser.id}`);
@@ -245,7 +257,7 @@ router.patch('/:id/members/:userId', requireAuth, async (req, res) => {
     res.json(updated);
   } catch (err) {
     console.error('Error updating role:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to update member role' });
   }
 });
 
@@ -263,11 +275,11 @@ router.delete('/:id/members/:userId', requireAuth, async (req, res) => {
     });
     res.json({ message: 'Member removed' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error removing member:', err);
+    res.status(500).json({ error: 'Failed to remove member from workspace' });
   }
 });
 
-// POST /api/workspaces/:id/transfer-ownership - Transfer ownership
 router.post('/:id/transfer-ownership', requireAuth, async (req, res) => {
   const { id } = req.params;
   const { targetUserId } = req.body;
@@ -301,9 +313,9 @@ router.post('/:id/transfer-ownership', requireAuth, async (req, res) => {
 
     res.json({ message: 'Ownership transferred successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error transferring ownership:', err);
+    res.status(500).json({ error: 'Failed to transfer ownership' });
   }
 });
 
 module.exports = router;
-

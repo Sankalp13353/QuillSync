@@ -17,18 +17,22 @@ const requireAuth = async (req, res, next) => {
   }
 
   try {
-    let dbUser = await prisma.user.findUnique({
-      where: { supabaseId: user.id }
-    });
-
-    if (!dbUser) {
-      dbUser = await prisma.user.create({
-        data: {
-          supabaseId: user.id,
-          email: user.email
-        }
-      });
+    // Block unconfirmed email/password users
+    if (user.app_metadata?.provider === 'email' && !user.email_confirmed_at) {
+      return res.status(403).json({ error: 'Please verify your email before accessing QuillSync.' });
     }
+
+    const email = user.email?.trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ error: 'Authenticated user does not have an email address.' });
+    }
+
+    // Use upsert to atomically handle concurrent requests
+    const dbUser = await prisma.user.upsert({
+      where: { supabaseId: user.id },
+      create: { supabaseId: user.id, email },
+      update: { email }
+    });
 
     req.user = user;
     req.dbUser = dbUser;
@@ -47,4 +51,3 @@ const hasWorkspaceRole = async (userId, workspaceId, allowedRoles) => {
 };
 
 module.exports = { supabase, requireAuth, hasWorkspaceRole };
-

@@ -15,7 +15,8 @@ router.get('/', requireAuth, async (req, res) => {
     });
     res.json(comments);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching comments:', err);
+    res.status(500).json({ error: 'Failed to fetch comments' });
   }
 });
 
@@ -37,7 +38,8 @@ router.post('/', requireAuth, async (req, res) => {
     });
     res.status(201).json(comment);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error creating comment:', err);
+    res.status(500).json({ error: 'Failed to create comment' });
   }
 });
 
@@ -57,7 +59,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
     await prisma.comment.delete({ where: { id: req.params.id } });
     res.json({ message: 'Comment deleted' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error deleting comment:', err);
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
 

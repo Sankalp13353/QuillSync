@@ -22,7 +22,8 @@ router.get('/', requireAuth, async (req, res) => {
     });
     res.json(versions);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching versions:', err);
+    res.status(500).json({ error: 'Failed to fetch versions' });
   }
 });
 

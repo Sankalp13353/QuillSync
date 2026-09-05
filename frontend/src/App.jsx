@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Authentication
 import LandingPage from "./pages/Landing/LandingPage";
@@ -23,9 +24,10 @@ import WorkspaceHome from "./pages/Workspace/Home/WorkspaceHome";
 
 function App() {
   return (
-    <AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
 
-      <Router>
+        <Router>
 
         <Routes>
 
@@ -87,9 +89,10 @@ function App() {
 
         </Routes>
 
-      </Router>
+        </Router>
 
-    </AuthProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -4,6 +4,7 @@ import { FiFeather, FiMail, FiLock, FiArrowRight, FiCheckCircle } from 'react-ic
 import { FcGoogle } from 'react-icons/fc';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 import './Login.css';
 
 export default function LoginPage() {
@@ -42,12 +43,12 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      // AuthContext will pick up the session change and dashboard route handles redirect
+      const { data } = await api.post('/auth/login', { email, password });
+      // Set the Supabase session from backend response — triggers AuthContext sync
+      await supabase.auth.setSession(data.session);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }

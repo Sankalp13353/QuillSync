@@ -38,7 +38,7 @@ export default function DocumentPage() {
       const initialDoc = location.state?.document || null;
 
       const [docRes, commentsRes] = await Promise.all([
-        initialDoc ? Promise.resolve({ data: initialDoc }) : api.get(`/documents/${docId}`),
+        initialDoc?.myRole ? Promise.resolve({ data: initialDoc }) : api.get(`/documents/${docId}`),
         api.get(`/comments?documentId=${docId}`).catch(() => ({ data: [] }))
       ]);
 
