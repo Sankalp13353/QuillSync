@@ -5,48 +5,53 @@ Collaborative knowledge & documentation platform.
 ## Stack
 
 - **Frontend** — React 19, Vite, React Router v7, Supabase, Axios
-- **Backend** — Node.js, Express 5, Prisma (PostgreSQL), Supabase Auth
+- **Backend** — Node.js, Express 5, Prisma ORM, PostgreSQL, Supabase Auth
 
 ## Features
 
-- Supabase auth with Prisma user sync
-- Workspaces — create, manage members, settings
-- Documents — scoped to workspaces, clickable from dashboard
-- Comments/Chat — per-document real-time style chat panel
+- Email/password auth with email verification gate
+- Google OAuth via Supabase (one account per verified email)
+- Prisma user sync on first confirmed login
+- Workspaces — create, manage members, role-based access (OWNER/EDITOR/VIEWER/COMMENTOR)
+- Folders — organize documents within workspaces
+- Documents — Tiptap rich text editor, scoped to folders/workspaces
+- Draft/PR flow — EDITORs submit drafts, OWNERs/EDITORs merge or close
+- Version history — per-document save history
+- Comments/Chat — per-document chat panel
 - Notifications — bell dropdown with mark as read
 - Unified search across all pages
+- Tags — color-coded document tags per workspace
 
 ## Project Structure
 
 ```
 QuillSync/
 ├── frontend/src/
-│   ├── components/   # Header, Sidebar, modals
-│   ├── context/      # AuthContext
-│   ├── pages/        # Dashboard, Workspaces, Document, Auth
-│   └── utils/        # api.js, supabase.js
+│   ├── components/       # Header, Sidebar, modals, workspace components
+│   ├── context/          # AuthContext (Supabase + Prisma sync)
+│   ├── pages/            # Dashboard, Workspaces, Document, Auth, Landing
+│   └── utils/            # api.js (axios + auth interceptor), supabase.js
 └── backend/
     ├── app/
-    │   ├── middleware/   # auth.js (JWT verify + Prisma user sync)
-    │   └── routes/       # workspaces, documents, comments, notifications, users
-    ├── prisma/           # schema, migrations, seed
+    │   ├── middleware/   # auth.js — JWT verify, email confirmation gate, Prisma sync
+    │   └── routes/       # users, workspaces, documents, folders, comments,
+    │                     # notifications, drafts, versions, tags
+    ├── prisma/           # schema.prisma, migrations, seed.js
     └── server.js
 ```
 
 ## Setup
 
-Requires Docker running (starts PostgreSQL automatically).
+Requires Docker running for PostgreSQL.
 
 ```bash
-# From root
-./start-dev.sh        # macOS/Linux
-start-dev.bat         # Windows
-```
+# Start postgres container
+docker start quillsync-db-1
 
-Or manually:
+# Backend
+cd backend && npm install && npx prisma generate && npx prisma migrate dev && npm run dev
 
-```bash
-cd backend && npm install && npx prisma migrate dev && npm run seed && npm run dev
+# Frontend (separate terminal)
 cd frontend && npm install && npm run dev
 ```
 
@@ -63,6 +68,26 @@ VITE_SUPABASE_ANON_KEY=
 PORT=5001
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
-JWT_SECRET=
-DATABASE_URL=postgresql://quillsync:quillsync@localhost:5432/quillsync
+DATABASE_URL=postgresql://quillsync:quillsync@localhost:5433/quillsync
+FRONTEND_URL=http://localhost:5174
 ```
+
+## Auth Flow
+
+```
+Register → Supabase creates unverified user → verification email sent
+         → user clicks link → email confirmed
+         → Login → backend validates + creates Prisma user → dashboard
+
+Google → Supabase OAuth → confirmed identity → Prisma user created/found → dashboard
+```
+
+- One email = one QuillSync account (enforced at DB and middleware level)
+- Unverified emails cannot access any protected route
+- Duplicate account creation blocked by `supabaseId` and `email` unique constraints
+
+## Supabase Dashboard Requirements
+
+- **Authentication → Email** — "Confirm email" must be **ON**
+- **Authentication → URL Configuration** — add `http://localhost:5174` to Site URL and Redirect URLs
+- **Authentication → Providers → Google** — enable with your Client ID and Secret
