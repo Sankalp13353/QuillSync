@@ -36,7 +36,8 @@ router.post('/register', async (req, res) => {
       session: null
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error registering user:', err);
+    res.status(400).json({ error: 'Failed to register. Please try again.' });
   }
 });
 
@@ -123,7 +124,8 @@ router.post('/verify-session', async (req, res) => {
       user: { id: user.id, email: user.email, fullName: user.user_metadata?.full_name, provider: user.app_metadata?.provider }
     });
   } catch (err) {
-    res.status(401).json({ error: err.message });
+    console.error('Error verifying session:', err);
+    res.status(401).json({ error: 'Failed to verify session' });
   }
 });
 
@@ -142,7 +144,8 @@ router.post('/refresh', async (req, res) => {
       user: { id: data.user.id, email: data.user.email, fullName: data.user.user_metadata?.full_name }
     });
   } catch (err) {
-    res.status(401).json({ error: err.message });
+    console.error('Error refreshing token:', err);
+    res.status(401).json({ error: 'Failed to refresh token' });
   }
 });
 

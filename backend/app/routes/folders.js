@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { requireAuth, hasWorkspaceRole } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
+const { validateFolderName } = require('../utils/validation');
 
 // GET /api/folders?workspaceId=XYZ&parentId=ABC
 router.get('/', requireAuth, async (req, res) => {
@@ -30,15 +31,21 @@ router.get('/', requireAuth, async (req, res) => {
 
     res.json(folders);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching folders:', err);
+    res.status(500).json({ error: 'Failed to fetch folders' });
   }
 });
 
 // POST /api/folders
 router.post('/', requireAuth, async (req, res) => {
   const { name, workspaceId, parentId } = req.body;
+  
   if (!name || !workspaceId) {
     return res.status(400).json({ error: 'name and workspaceId are required' });
+  }
+  
+  if (!validateFolderName(name)) {
+    return res.status(400).json({ error: 'Folder name must be between 1 and 255 characters' });
   }
 
   try {
@@ -57,7 +64,8 @@ router.post('/', requireAuth, async (req, res) => {
 
     res.status(201).json(folder);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error creating folder:', err);
+    res.status(500).json({ error: 'Failed to create folder' });
   }
 });
 
@@ -94,7 +102,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
 
     res.json(updatedFolder);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error updating folder:', err);
+    res.status(500).json({ error: 'Failed to update folder' });
   }
 });
 
@@ -116,19 +125,24 @@ router.get('/:id/breadcrumbs', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Traverse upwards
-    const breadcrumbs = [];
-    let currentFolderId = id;
-    while (currentFolderId) {
-      const f = await prisma.folder.findUnique({ where: { id: currentFolderId } });
-      if (!f) break;
-      breadcrumbs.unshift({ id: f.id, name: f.name });
-      currentFolderId = f.parentId;
-    }
+    // Recursively build breadcrumbs with nested includes (more efficient than loop)
+    const buildBreadcrumbs = async (folderId) => {
+      const f = await prisma.folder.findUnique({
+        where: { id: folderId },
+        include: {
+          parent: true
+        }
+      });
+      if (!f) return [];
+      const parentBreadcrumbs = f.parent ? await buildBreadcrumbs(f.parent.id) : [];
+      return [...parentBreadcrumbs, { id: f.id, name: f.name }];
+    };
 
+    const breadcrumbs = await buildBreadcrumbs(id);
     res.json(breadcrumbs);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching breadcrumbs:', err);
+    res.status(500).json({ error: 'Failed to fetch folder breadcrumbs' });
   }
 });
 
@@ -164,7 +178,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
 
     res.json({ message: 'Folder deleted' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error deleting folder:', err);
+    res.status(500).json({ error: 'Failed to delete folder' });
   }
 });
 

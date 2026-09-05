@@ -27,28 +27,12 @@ const requireAuth = async (req, res, next) => {
       return res.status(400).json({ error: 'Authenticated user does not have an email address.' });
     }
 
-    let dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id } });
-
-    if (!dbUser) {
-      // Check if this email already belongs to a different Prisma user
-      const existingByEmail = await prisma.user.findUnique({ where: { email } });
-      if (existingByEmail) {
-        return res.status(409).json({ error: 'An account already exists with this email. Please use your original sign-in method.' });
-      }
-
-      try {
-        dbUser = await prisma.user.create({ data: { supabaseId: user.id, email } });
-      } catch (createErr) {
-        // Handle race condition: another request created the user between our check and create
-        if (createErr.code === 'P2002') {
-          dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id } })
-            || await prisma.user.findUnique({ where: { email } });
-          if (!dbUser) return res.status(500).json({ error: 'Database error resolving user session' });
-        } else {
-          throw createErr;
-        }
-      }
-    }
+    // Use upsert to atomically handle concurrent requests
+    const dbUser = await prisma.user.upsert({
+      where: { supabaseId: user.id },
+      create: { supabaseId: user.id, email },
+      update: { email }
+    });
 
     req.user = user;
     req.dbUser = dbUser;

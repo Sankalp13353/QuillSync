@@ -1,8 +1,9 @@
 const router = require('express').Router();
 const { requireAuth } = require('../middleware/auth');
 const prisma = require('../../prisma/client');
+const { getEmailUsername } = require('../utils/validation');
 
-const canManage = (role) => ['OWNER', 'MANAGER'].includes(role);
+const canManage = (role) => ['OWNER', 'COMMENTOR'].includes(role);
 
 const getMembership = async (userId, workspaceId) =>
   prisma.workspaceMember.findUnique({
@@ -31,7 +32,8 @@ router.get('/', requireAuth, async (req, res) => {
     });
     res.json(drafts);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching drafts:', err);
+    res.status(500).json({ error: 'Failed to fetch drafts' });
   }
 });
 
@@ -54,20 +56,21 @@ router.post('/', requireAuth, async (req, res) => {
 
     // Notify managers/owners
     const managers = await prisma.workspaceMember.findMany({
-      where: { workspaceId: doc.workspaceId, role: { in: ['OWNER', 'MANAGER'] } }
+      where: { workspaceId: doc.workspaceId, role: { in: ['OWNER', 'COMMENTOR'] } }
     });
     if (managers.length > 0) {
       await prisma.notification.createMany({
         data: managers.map(m => ({
           userId: m.userId,
-          message: `${req.dbUser.email.split('@')[0]} submitted a draft for review on "${doc.title}"`
+          message: `${getEmailUsername(req.dbUser.email)} submitted a draft for review on \"${doc.title}\"`
         }))
       });
     }
 
     res.status(201).json(draft);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error creating draft:', err);
+    res.status(500).json({ error: 'Failed to submit draft' });
   }
 });
 
@@ -82,7 +85,7 @@ router.post('/:id/merge', requireAuth, async (req, res) => {
     if (draft.status !== 'OPEN') return res.status(400).json({ error: 'Draft is not open' });
 
     const membership = await getMembership(req.dbUser.id, draft.document.workspaceId);
-    if (!membership || !canManage(membership.role)) return res.status(403).json({ error: 'Only MANAGER or OWNER can merge' });
+    if (!membership || !canManage(membership.role)) return res.status(403).json({ error: 'Only COMMENTOR or OWNER can merge' });
 
     // Get latest version number
     const latest = await prisma.documentVersion.findFirst({
@@ -127,7 +130,8 @@ router.post('/:id/merge', requireAuth, async (req, res) => {
 
     res.json({ message: 'Draft merged', version: nextVersion });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error merging draft:', err);
+    res.status(500).json({ error: 'Failed to merge draft' });
   }
 });
 
@@ -142,7 +146,7 @@ router.post('/:id/close', requireAuth, async (req, res) => {
     if (draft.status !== 'OPEN') return res.status(400).json({ error: 'Draft is not open' });
 
     const membership = await getMembership(req.dbUser.id, draft.document.workspaceId);
-    if (!membership || !canManage(membership.role)) return res.status(403).json({ error: 'Only MANAGER or OWNER can close drafts' });
+    if (!membership || !canManage(membership.role)) return res.status(403).json({ error: 'Only COMMENTOR or OWNER can close drafts' });
 
     await prisma.$transaction([
       prisma.documentDraft.update({ where: { id: draft.id }, data: { status: 'CLOSED' } }),
@@ -156,7 +160,8 @@ router.post('/:id/close', requireAuth, async (req, res) => {
 
     res.json({ message: 'Draft closed' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error closing draft:', err);
+    res.status(500).json({ error: 'Failed to close draft' });
   }
 });
 
