@@ -76,7 +76,7 @@ const MoveModal = ({ isOpen, onClose, item, workspaceId, onMoveSuccess }) => {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Cancel</button>
+          <button onClick={onClose} style={{ padding: '8px 16px', background: 'white', color: '#dc2626', border: '1px solid #dc2626', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
           <button onClick={handleMove} disabled={loading} style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>
             {loading ? "Moving..." : "Move Here"}
           </button>

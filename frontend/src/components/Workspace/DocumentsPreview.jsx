@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiFileText, FiFolder, FiMoreVertical, FiMove, FiHome } from "react-icons/fi";
+import { FiFileText, FiFolder, FiMoreVertical, FiMove, FiTrash2, FiHome } from "react-icons/fi";
 import MoveModal from "./MoveModal";
+import api from "../../utils/api";
 
 const DocumentsPreview = ({ workspace, documents, folders = [], folderId, breadcrumbs = [], onMoveSuccess }) => {
   const navigate = useNavigate();
@@ -48,6 +49,32 @@ const DocumentsPreview = ({ workspace, documents, folders = [], folderId, breadc
     e.stopPropagation();
     setMoveModalItem(item);
     setOpenMenuId(null);
+  };
+
+  const handleDeleteDocument = async (e, document) => {
+    e.stopPropagation();
+    setOpenMenuId(null);
+    if (!window.confirm(`Delete "${document.title}"? This cannot be undone.`)) return;
+
+    try {
+      await api.delete(`/documents/${document.id}`);
+      if (onMoveSuccess) onMoveSuccess();
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to delete document.");
+    }
+  };
+
+  const handleDeleteFolder = async (e, folder) => {
+    e.stopPropagation();
+    setOpenMenuId(null);
+    if (!window.confirm(`Delete folder "${folder.name}"? It must be empty.`)) return;
+
+    try {
+      await api.delete(`/folders/${folder.id}`);
+      if (onMoveSuccess) onMoveSuccess();
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to delete folder.");
+    }
   };
 
   const toggleMenu = (e, id) => {
@@ -115,14 +142,22 @@ const DocumentsPreview = ({ workspace, documents, folders = [], folderId, breadc
                 </button>
                 {openMenuId === `folder-${folder.id}` && (
                   <div style={{ position: 'absolute', right: 0, top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
-                    <div 
+                    <button 
                       onClick={(e) => handleMoveClick(e, { ...folder, type: 'folder' })}
-                      style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white' }}
+                      style={{ width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white', border: 'none', textAlign: 'left' }}
                       onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
                     >
                       <FiMove /> Move
-                    </div>
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteFolder(e, folder)}
+                      style={{ width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#dc2626', background: 'white', border: 'none', textAlign: 'left' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                    >
+                      <FiTrash2 /> Delete
+                    </button>
                   </div>
                 )}
               </div>
@@ -186,14 +221,22 @@ const DocumentsPreview = ({ workspace, documents, folders = [], folderId, breadc
                 </button>
                 {openMenuId === `doc-${document.id}` && (
                   <div style={{ position: 'absolute', right: 0, top: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px', overflow: 'hidden' }}>
-                    <div 
+                    <button 
                       onClick={(e) => handleMoveClick(e, { ...document, type: 'document' })}
-                      style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white' }}
+                      style={{ width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#334155', background: 'white', border: 'none', textAlign: 'left' }}
                       onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
                     >
                       <FiMove /> Move
-                    </div>
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteDocument(e, document)}
+                      style={{ width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#dc2626', background: 'white', border: 'none', textAlign: 'left' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                    >
+                      <FiTrash2 /> Delete
+                    </button>
                   </div>
                 )}
               </div>
