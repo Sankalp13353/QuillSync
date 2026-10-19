@@ -11,6 +11,7 @@ import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Register/RegisterPage";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import InvitationPage from "./pages/Invitation/InvitationPage";
 
 // Dashboard
 import DashboardPage from "./pages/Dashboard/DashboardPage";
@@ -48,6 +49,8 @@ function App() {
             path="/reset-password"
             element={<ResetPassword />}
           />
+
+          <Route path="/invite/:token" element={<InvitationPage />} />
 
           {/* Protected Routes */}
 

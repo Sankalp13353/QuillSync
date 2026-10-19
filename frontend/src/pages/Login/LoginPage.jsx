@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { FiFeather, FiMail, FiLock, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { supabase } from '../../utils/supabase';
@@ -9,6 +10,7 @@ import './Login.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +48,7 @@ export default function LoginPage() {
       const { data } = await api.post('/auth/login', { email, password });
       // Set the Supabase session from backend response — triggers AuthContext sync
       await supabase.auth.setSession(data.session);
-      navigate('/dashboard');
+      navigate(searchParams.get('redirect') || '/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid email or password.');
     } finally {

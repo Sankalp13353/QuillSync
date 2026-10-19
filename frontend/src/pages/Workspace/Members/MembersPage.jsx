@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FiUserPlus, FiMoreVertical, FiTrash2, FiShield } from "react-icons/fi";
 import Sidebar from "../../../components/Sidebar";
@@ -28,17 +28,21 @@ export default function MembersPage() {
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: '', userId: null });
 
-  const fetchWorkspace = () => {
+  const fetchWorkspace = useCallback(() => {
     setLoading(true);
     api.get(`/workspaces/${id}`)
       .then((res) => setWorkspace(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [id]);
 
   useEffect(() => {
+    if (!id || id === "null" || id === "undefined") {
+      navigate("/workspaces", { replace: true });
+      return;
+    }
     fetchWorkspace();
-  }, [id]);
+  }, [fetchWorkspace, id, navigate]);
 
   const filtered = (workspace?.members || []).filter((m) =>
     m.email.toLowerCase().includes(search.toLowerCase())
@@ -52,7 +56,7 @@ export default function MembersPage() {
     if (!inviteEmail) return;
     setInviteLoading(true);
     try {
-      await api.post(`/workspaces/${id}/members`, { email: inviteEmail, role: inviteRole });
+      await api.post(`/invitations/workspace/${id}`, { email: inviteEmail, role: inviteRole });
       setShowInviteModal(false);
       setInviteEmail("");
       fetchWorkspace();
@@ -227,8 +231,12 @@ export default function MembersPage() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn-cancel" onClick={() => setShowInviteModal(false)}>Cancel</button>
-                <button type="submit" className="btn-confirm" disabled={inviteLoading || !inviteEmail}>
-                  {inviteLoading ? 'Inviting...' : 'Invite'}
+                <button
+                  type="submit"
+                  className="btn-confirm"
+                  disabled={inviteLoading || !inviteEmail}
+                >
+                  {inviteLoading ? 'Sending...' : 'Send Invitation'}
                 </button>
               </div>
             </form>

@@ -1,7 +1,9 @@
 import React from "react";
 import { FiBell } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 const Notifications = ({ notifications }) => {
+  const navigate = useNavigate();
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
@@ -31,6 +33,9 @@ const Notifications = ({ notifications }) => {
               className="notification-card"
               key={notification.id}
               style={{ opacity: notification.read ? 0.6 : 1 }}
+              onClick={() => notification.actionUrl && navigate(notification.actionUrl)}
+              role={notification.actionUrl ? "button" : undefined}
+              tabIndex={notification.actionUrl ? 0 : undefined}
             >
               <div className="notification-icon">
                 <FiBell />
@@ -44,6 +49,9 @@ const Notifications = ({ notifications }) => {
                 <span className="notification-time">
                   {formatDate(notification.createdAt)}
                 </span>
+                {notification.actionUrl && (
+                  <span style={{ color: "#60a5fa", fontSize: 13 }}>{notification.actionLabel || "Open"}</span>
+                )}
               </div>
             </div>
           ))
