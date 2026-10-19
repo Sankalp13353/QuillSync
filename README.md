@@ -18,7 +18,8 @@ Collaborative knowledge & documentation platform.
 - Draft/PR flow — EDITORs submit drafts, OWNERs/EDITORs merge or close
 - Version history — per-document save history
 - Comments/Chat — per-document chat panel
-- Notifications — bell dropdown with mark as read
+- Notifications — bell dropdown with actionable workspace invitations
+- Workspace invitations — SendGrid email invitations with accept/decline flow and status notifications
 - Unified search across all pages
 - Tags — color-coded document tags per workspace
 
@@ -35,24 +36,52 @@ QuillSync/
     ├── app/
     │   ├── middleware/   # auth.js — JWT verify, email confirmation gate, Prisma sync
     │   └── routes/       # users, workspaces, documents, folders, comments,
-    │                     # notifications, drafts, versions, tags
+    │                     # notifications, invitations, drafts, versions, tags
     ├── prisma/           # schema.prisma, migrations, seed.js
     └── server.js
 ```
 
 ## Setup
 
-Requires Docker running for PostgreSQL.
+The backend and PostgreSQL run locally; Docker is not required. Install
+PostgreSQL 16 if needed, then start the local service on macOS with Homebrew:
 
 ```bash
-# Start postgres container
-docker start quillsync-db-1
+brew install postgresql@16 # one-time install
+brew services start postgresql@16
+```
 
-# Backend
-cd backend && npm install && npx prisma generate && npx prisma migrate dev && npm run dev
+If the `quillsync` PostgreSQL role and database do not already exist, create
+them once:
 
-# Frontend (separate terminal)
-cd frontend && npm install && npm run dev
+```bash
+psql -d postgres -c "CREATE ROLE quillsync LOGIN PASSWORD 'quillsync';"
+createdb -O quillsync quillsync
+```
+
+Ensure `backend/.env` points to local PostgreSQL:
+
+```env
+DATABASE_URL=postgresql://quillsync:quillsync@localhost:5432/quillsync
+```
+
+Start the backend from a terminal:
+
+```bash
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run dev
+```
+
+The API is available at `http://localhost:5001`. In a separate terminal,
+start the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ## Environment Variables
@@ -68,9 +97,27 @@ VITE_SUPABASE_ANON_KEY=
 PORT=5001
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
-DATABASE_URL=postgresql://quillsync:quillsync@localhost:5433/quillsync
+DATABASE_URL=postgresql://quillsync:quillsync@localhost:5432/quillsync
 FRONTEND_URL=http://localhost:5174
+SENDGRID_API_KEY=SG_your_sendgrid_api_key
+SENDGRID_FROM_EMAIL=your_verified_sender@example.com
 ```
+
+### SendGrid Setup
+
+Workspace invitations are sent through SendGrid. Before using the invite feature:
+
+1. Create a SendGrid account and verify a sender identity under **Settings → Sender Authentication → Verify a Single Sender**.
+2. Create an API key under **Settings → API Keys** with **Mail Send: Full Access**. Leave Billing, Security, Mail Settings, and API Keys access disabled.
+3. Set `SENDGRID_API_KEY` to the generated key and set `SENDGRID_FROM_EMAIL` to the exact verified sender email address.
+4. Restart the backend after changing `backend/.env`:
+
+```bash
+cd backend
+npm run dev
+```
+
+Never place `SENDGRID_API_KEY` in `frontend/.env` or commit it to source control.
 
 ## Auth Flow
 

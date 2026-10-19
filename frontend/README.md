@@ -13,6 +13,10 @@ React + Vite frontend for the QuillSync collaborative documentation platform.
 
 ## Setup
 
+The frontend expects the API at `http://localhost:5001`. Start the backend and
+local PostgreSQL database using the setup instructions in the [root README](../README.md).
+Then run the frontend:
+
 ```bash
 npm install
 npm run dev       # http://localhost:5174

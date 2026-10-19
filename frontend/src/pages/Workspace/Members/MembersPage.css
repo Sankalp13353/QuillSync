@@ -214,6 +214,53 @@
 
 }
 
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 24px 24px;
+}
+
+.modal-footer button {
+    flex: 0 0 auto;
+    min-width: 100px;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.modal-footer .btn-cancel {
+    border: 1px solid #475569;
+    background: transparent;
+    color: #cbd5e1;
+}
+
+.modal-footer .btn-cancel:hover {
+    border-color: #94a3b8;
+    background: #1e293b;
+    color: white;
+}
+
+.modal-footer .btn-confirm {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: white;
+}
+
+.modal-footer .btn-confirm:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.modal-footer .btn-confirm:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .member-options-menu {
     position: absolute;
     right: 0;

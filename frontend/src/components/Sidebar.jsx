@@ -17,7 +17,8 @@ const Sidebar = () => {
   const location = useLocation();
   const { id } = useParams();
   const { signOut } = useAuth();
-  const [workspaceId, setWorkspaceId] = useState(id || null);
+  const routeWorkspaceId = id && id !== "null" && id !== "undefined" ? id : null;
+  const [workspaceId, setWorkspaceId] = useState(routeWorkspaceId);
 
   const handleLogout = async () => {
     await signOut();
@@ -25,22 +26,21 @@ const Sidebar = () => {
   };
 
   useEffect(() => {
-    if (id) {
-      setWorkspaceId(id);
+    if (routeWorkspaceId) {
+      setWorkspaceId(routeWorkspaceId);
     } else {
+      setWorkspaceId(null);
       const fetchFirstWorkspace = async () => {
         try {
           const response = await api.get("/workspaces");
-          if (response.data && response.data.length > 0) {
-            setWorkspaceId(response.data[0].id);
-          }
+          setWorkspaceId(response.data?.[0]?.id || null);
         } catch (err) {
           console.error("Sidebar error:", err);
         }
       };
       fetchFirstWorkspace();
     }
-  }, [id]);
+  }, [routeWorkspaceId]);
 
 
   return (
@@ -97,9 +97,7 @@ const Sidebar = () => {
                   ? "sidebar-item--active"
                   : ""
               }`}
-              onClick={() =>
-                navigate(`/workspace/${workspaceId}/members`)
-              }
+              onClick={() => navigate(workspaceId ? `/workspace/${workspaceId}/members` : "/workspaces")}
             >
               <FiUsers />
               <span>Members</span>
@@ -111,9 +109,7 @@ const Sidebar = () => {
                   ? "sidebar-item--active"
                   : ""
               }`}
-              onClick={() =>
-                navigate(`/workspace/${workspaceId}/settings`)
-              }
+              onClick={() => navigate(workspaceId ? `/workspace/${workspaceId}/settings` : "/workspaces")}
             >
               <FiSettings />
               <span>Settings</span>

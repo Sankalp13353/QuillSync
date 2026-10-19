@@ -22,6 +22,7 @@ app.use((req, res, next) => {
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/auth', require('./app/routes/users'));
+app.use('/api/invitations', require('./app/routes/invitations'));
 app.use('/api/workspaces', require('./app/routes/workspaces'));
 app.use('/api/documents', require('./app/routes/documents'));
 app.use('/api/notifications', require('./app/routes/notifications'));

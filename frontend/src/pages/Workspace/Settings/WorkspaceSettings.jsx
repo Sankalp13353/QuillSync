@@ -16,6 +16,10 @@ export default function WorkspaceSettings() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    if (!id || id === "null" || id === "undefined") {
+      navigate("/workspaces", { replace: true });
+      return;
+    }
     api.get(`/workspaces/${id}`)
       .then((res) => {
         setName(res.data.name);
@@ -23,7 +27,7 @@ export default function WorkspaceSettings() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, navigate]);
 
   const handleSave = async (e) => {
     e.preventDefault();

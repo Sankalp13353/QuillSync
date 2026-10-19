@@ -19,6 +19,13 @@ enum DraftStatus {
   CLOSED
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
 model User {
   id              String            @id @default(uuid())
   supabaseId      String            @unique
@@ -30,6 +37,7 @@ model User {
   memberships     WorkspaceMember[]
   documentVersions DocumentVersion[]
   documentDrafts  DocumentDraft[]
+  sentInvitations  WorkspaceInvitation[] @relation("InvitationSender")
 }
 
 model Workspace {
@@ -43,6 +51,7 @@ model Workspace {
   tags        Tag[]
   owner       User              @relation(fields: [ownerId], references: [id])
   members     WorkspaceMember[]
+  invitations WorkspaceInvitation[]
 }
 
 model WorkspaceMember {
@@ -146,6 +155,26 @@ model Notification {
   userId    String
   message   String
   read      Boolean  @default(false)
+  type      String   @default("INFO")
+  actionUrl String?
+  actionLabel String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model WorkspaceInvitation {
+  id          String           @id @default(uuid())
+  workspaceId String
+  inviterId   String
+  email       String
+  role        Role
+  token       String           @unique
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  inviter     User             @relation("InvitationSender", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([email, status])
+  @@index([workspaceId, status])
 }
