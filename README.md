@@ -84,6 +84,21 @@ npm install
 npm run dev
 ```
 
+## Continuous Integration
+
+GitHub Actions validates pushes to `main`, pull requests targeting `main`, and
+manual runs. CI targets Node.js 22, matching the backend Dockerfile. It installs
+the frontend and backend from their npm lockfiles; lints and builds the
+frontend; checks backend JavaScript syntax, validates and generates Prisma
+Client, and applies migrations to a disposable PostgreSQL 16 service. Dependency
+audits fail on high or critical findings.
+
+CI does not run application tests: no automated test framework or test script
+is configured, and the existing `test-*` scripts are database-mutating manual
+utilities. CI needs no Supabase, SendGrid, or production database credentials.
+See the [CI/CD engineering guide](docs/engineering/ci-cd.md) for commands,
+security controls, limitations, and maintenance instructions.
+
 ## Environment Variables
 
 **frontend/.env**
